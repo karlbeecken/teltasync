@@ -1,0 +1,308 @@
+{
+  "success": true,
+  "data": {
+    "board": {
+      "modems": [
+        {
+          "operator_scan": true,
+          "volte": true,
+          "low_signal_reconnect": true,
+          "dhcp_filter": true,
+          "vendor": "2c7c",
+          "revision": "RG501QEUAAR12A11M4G_04.202.04.202",
+          "wwan_gnss_conflict": false,
+          "desc": "Quectel RG50X",
+          "type": "gobinet",
+          "boudrate": "115200",
+          "verizon_disable_5g_sa": false,
+          "simcount": 2,
+          "stop_bits": "8",
+          "framed_routing": true,
+          "csd": false,
+          "num": "1",
+          "red_cap": false,
+          "gps": "1",
+          "id": "2-1",
+          "primary": true,
+          "modem_func_id": 2,
+          "band_list": [
+            "WCDMA_850",
+            "WCDMA_900",
+            "WCDMA_2100",
+            "LTE_B1",
+            "LTE_B3",
+            "LTE_B5",
+            "LTE_B7",
+            "LTE_B8",
+            "LTE_B20",
+            "LTE_B28",
+            "LTE_B32",
+            "LTE_B38",
+            "LTE_B40",
+            "LTE_B41",
+            "LTE_B42",
+            "LTE_B43",
+            "NSA_5G_N1",
+            "NSA_5G_N3",
+            "NSA_5G_N5",
+            "NSA_5G_N7",
+            "NSA_5G_N8",
+            "NSA_5G_N20",
+            "NSA_5G_N28",
+            "NSA_5G_N38",
+            "NSA_5G_N40",
+            "NSA_5G_N41",
+            "NSA_5G_N77",
+            "NSA_5G_N78",
+            "5G_N1",
+            "5G_N3",
+            "5G_N5",
+            "5G_N7",
+            "5G_N8",
+            "5G_N20",
+            "5G_N28",
+            "5G_N38",
+            "5G_N40",
+            "5G_N41",
+            "5G_N77",
+            "5G_N78"
+          ],
+          "gps_out": true,
+          "product": "0800",
+          "auto_5g_mode": false,
+          "control": "2",
+          "builtin": true,
+          "ipv6": true,
+          "dynamic_mtu": true,
+          "multi_apn": true
+        }
+      ],
+      "hwinfo": {
+        "esim": false,
+        "modem_reset_quirk": false,
+        "mt7981_wifi": false,
+        "bacnet": false,
+        "access_point": false,
+        "boot_part": false,
+        "sw_offload": false,
+        "hi_storage": false,
+        "sd_card": false,
+        "downstream_kernel": false,
+        "gigabit_port": true,
+        "dot1x_client": false,
+        "port_link": true,
+        "ios": true,
+        "baseband": false,
+        "io": false,
+        "ethernet": true,
+        "hw_offload": false,
+        "rs232": false,
+        "reset_button": true,
+        "bluetooth": false,
+        "64mb_ram": false,
+        "multi_device": false,
+        "dsa": false,
+        "mbus": false,
+        "at_sim": true,
+        "hnat": false,
+        "usb": true,
+        "micro_usb": false,
+        "gateway": false,
+        "poe": false,
+        "sfp_port": false,
+        "usb_port": false,
+        "rs485": false,
+        "industrial_access_point": false,
+        "power_ios": false,
+        "wifi": true,
+        "ntrip": false,
+        "consumer_access_point": false,
+        "hw_nat": false,
+        "modbus": false,
+        "soft_port_mirror": false,
+        "single_port": false,
+        "dual_band_ssid": true,
+        "2_5_gigabit_port": false,
+        "wps": false,
+        "nat_offloading": true,
+        "dual_modem": false,
+        "console": false,
+        "ledman_lite": false,
+        "serial": false,
+        "testing_kernel": false,
+        "guest_wifi": false,
+        "serial_reset_quirk": false,
+        "bt": false,
+        "tlt_failsafe_boot": false,
+        "tpm": false,
+        "ncm": false,
+        "gps": true,
+        "port_mirror": false,
+        "qrtrpipes": false,
+        "dual_sim": true,
+        "bpoffload": false,
+        "smp": false,
+        "rootfs_part": false,
+        "verified_boot": false,
+        "pppmobile": false,
+        "mobile": true,
+        "vendor_wifi": false,
+        "basic_router": false,
+        "rndis": false,
+        "high_watchdog_priority": false,
+        "xfrm-offload": true,
+        "multi_tag": true
+      },
+      "release_version": "7.2.8",
+      "usb_jack": "/usb3/3-1/",
+      "network_options": {
+        "readonly_vlans": 2,
+        "max_mtu": 9000,
+        "vlans": 128
+      },
+      "model": {
+        "id": "teltonika,rutx",
+        "platform": "RUTX",
+        "name": "RUTX50"
+      },
+      "switch": {
+        "switch0": {
+          "enable": true,
+          "roles": [
+            {
+              "ports": "1 2 3 4 0",
+              "role": "lan",
+              "device": "eth0"
+            },
+            {
+              "ports": "5 0",
+              "role": "wan",
+              "device": "eth1"
+            }
+          ],
+          "ports": [
+            {
+              "device": "eth0",
+              "num": 0,
+              "want_untag": true,
+              "need_tag": false
+            },
+            {
+              "role": "lan",
+              "num": 1
+            },
+            {
+              "role": "lan",
+              "num": 2
+            },
+            {
+              "role": "lan",
+              "num": 3
+            },
+            {
+              "role": "lan",
+              "num": 4
+            },
+            {
+              "device": "eth1",
+              "num": 0,
+              "want_untag": true,
+              "need_tag": false
+            },
+            {
+              "role": "wan",
+              "num": 5
+            }
+          ],
+          "reset": true
+        }
+      },
+      "network": {
+        "wan": {
+          "device": "eth1",
+          "proto": "dhcp"
+        },
+        "lan": {
+          "device": "eth0",
+          "proto": "static",
+          "default_ip": "192.168.1.1"
+        }
+      },
+      "serial": [
+        {
+          "external_devices": []
+        }
+      ],
+      "wlan": {
+        "wlan1": {
+          "bssid_limit": 16
+        },
+        "wlan0": {
+          "bssid_limit": 16
+        }
+      }
+    },
+    "ports": [
+      {
+        "mac": "AA:BB:CC:DD:EE:01",
+        "num": 1,
+        "name": "LAN",
+        "position": 1
+      },
+      {
+        "mac": "AA:BB:CC:DD:EE:01",
+        "num": 2,
+        "name": "LAN",
+        "position": 2
+      },
+      {
+        "mac": "AA:BB:CC:DD:EE:01",
+        "num": 3,
+        "name": "LAN",
+        "position": 3
+      },
+      {
+        "mac": "AA:BB:CC:DD:EE:01",
+        "num": 4,
+        "name": "LAN",
+        "position": 4
+      },
+      {
+        "mac": "AA:BB:CC:DD:EE:02",
+        "num": 5,
+        "name": "WAN",
+        "position": 5
+      }
+    ],
+    "static": {
+      "fw_version": "RUTX_R_00.07.17.3",
+      "kernel": "6.6.96",
+      "system": "ARMv7 Processor rev 5 (v7l)",
+      "device_name": "RUTX50",
+      "cpu_count": 4,
+      "hostname": "RUTX50",
+      "release": {
+        "distribution": "OpenWrt",
+        "revision": "r16279-5cc0535800",
+        "version": "21.02.0",
+        "target": "ipq40xx/generic",
+        "description": "OpenWrt 21.02.0 r16279-5cc0535800"
+      },
+      "fw_build_date": "2025-09-04 14:49:05",
+      "model": "RUTX50",
+      "board_name": "teltonika,rutx"
+    },
+    "features": {
+      "ipv6": true
+    },
+    "mnfinfo": {
+      "macEth": "AABBCCDDEE02",
+      "mac": "AABBCCDDEE01",
+      "name": "RUTX50_TEST_001",
+      "blver": "3.0",
+      "hwver": "0202",
+      "batch": "0001",
+      "serial": "1234567890"
+    }
+  }
+}

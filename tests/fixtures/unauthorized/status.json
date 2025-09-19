@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "data": {
+    "device_name": "RUTX50",
+    "device_model": "RUTX50",
+    "device_identifier": "123456781234567812345678",
+    "api_version": "1.9.2",
+    "lang": "en"
+  }
+}
