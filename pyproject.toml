@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "teltasync"
-version = "0.1.0"
+version = "0.1.1"
 description = "Async, typed API client for Teltonika routers, built for Home Assistant"
 authors = ["Karl Beecken <karl@beecken.berlin>"]
 packages = [
     { include = "teltasync", from = "src" }
 ]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.13"
