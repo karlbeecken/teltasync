@@ -2,8 +2,8 @@
 
 teltasync is an async python library for interfacing with Teltonika routers via their HTTP API.
 
-[!NOTE]
-Please report issues and open pull requests only at Codeberg: https://codeberg.org/dmho/teltasync
+> [!NOTE]
+> Please report issues and open pull requests only at Codeberg: https://codeberg.org/dmho/teltasync
 
 ## Installation
 
