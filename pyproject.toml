@@ -10,6 +10,9 @@ packages = [
 ]
 readme = "README.md"
 
+[project.urls]
+Repository = "https://codeberg.org/dmho/teltasync"
+
 [tool.poetry.dependencies]
 python = ">=3.13"
 aiohttp = "^3.13.3"
