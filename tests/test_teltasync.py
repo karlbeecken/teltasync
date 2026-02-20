@@ -1,292 +1,251 @@
 """Tests for the main Teltasync client."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, Mock, patch
 from aiohttp import ClientSession
 
 from teltasync import Teltasync
-from teltasync.exceptions import TeltonikaConnectionError, TeltonikaAuthenticationError
-from teltasync.auth import TokenData
-from teltasync.system import DeviceStatusData
-from teltasync.modems import ModemStatusFull
-from teltasync.unauthorized import UnauthorizedStatusData
 from teltasync.api_base import ApiResponse
+from teltasync.exceptions import TeltonikaAuthenticationError, TeltonikaConnectionError
+from teltasync.modems import ModemStatus, ModemStatusFull
+from teltasync.system import DeviceStatusData
+from teltasync.unauthorized import UnauthorizedStatusData
+from tests.helpers import load_fixture
 
 
-class TestTeltasyncInitialization:
-    """Test Teltasync client initialization."""
+@pytest.fixture(name="unauthorized_status_fixture")
+def fixture_unauthorized_status():
+    """Load unauthorized status fixture data."""
+    return load_fixture("unauthorized", "status.json")
 
-    def test_init_with_session(self):
-        """Test initialization with provided session."""
-        mock_session = Mock(spec=ClientSession)
-        client = Teltasync(
-            base_url="https://192.168.1.1/api",
-            username="admin",
-            password="password",
-            session=mock_session
-        )
 
-        assert client._session is mock_session
-        assert client._own_session is False
-        assert client.session is mock_session
+@pytest.fixture(name="system_status_fixture")
+def fixture_system_status():
+    """Load system status fixture data."""
+    return load_fixture("system", "device_status.json")
 
-    def test_init_without_session(self):
-        """Test initialization without session (will create one)."""
-        client = Teltasync(
-            base_url="https://192.168.1.1/api",
-            username="admin",
-            password="password"
-        )
 
-        assert client._own_session is True
+@pytest.fixture(name="modems_status_fixture")
+def fixture_modems_status():
+    """Load modems status fixture data."""
+    return load_fixture("modems", "status.json")
 
-    @pytest.mark.asyncio
-    async def test_create_class_method(self):
-        """Test the create class method."""
+
+@pytest.fixture(name="unauthorized_status_response")
+def fixture_unauthorized_status_response(unauthorized_status_fixture):
+    """Return parsed unauthorized status fixture response."""
+    return ApiResponse[UnauthorizedStatusData](**unauthorized_status_fixture)
+
+
+@pytest.fixture(name="system_status_response")
+def fixture_system_status_response(system_status_fixture):
+    """Return parsed system status fixture response."""
+    return ApiResponse[DeviceStatusData](**system_status_fixture)
+
+
+@pytest.fixture(name="modems_status_response")
+def fixture_modems_status_response(modems_status_fixture):
+    """Return parsed modems status fixture response."""
+    return ApiResponse[list[ModemStatus]](**modems_status_fixture)
+
+
+@pytest.fixture(name="client")
+def fixture_client():
+    """Create a Teltasync client with an external mock session."""
+    mock_session = AsyncMock(spec=ClientSession)
+    return Teltasync(
+        base_url="https://192.168.1.1/api",
+        username="admin",
+        password="password",
+        session=mock_session,
+    )
+
+
+@pytest.mark.asyncio
+async def test_create_class_method_returns_client():
+    """Test the create class method."""
+    client = await Teltasync.create(
+        base_url="https://192.168.1.1/api",
+        username="admin",
+        password="password",
+        verify_ssl=False,
+    )
+
+    assert isinstance(client, Teltasync)
+    session = client.session
+    assert isinstance(session, ClientSession)
+
+    await client.close()
+    assert session.closed is True
+
+
+@pytest.mark.asyncio
+async def test_create_class_method_closes_managed_session():
+    """Test create() closes the lazily created managed session."""
+    mock_session = AsyncMock(spec=ClientSession)
+
+    with patch("teltasync.teltasync.ClientSession", return_value=mock_session):
         client = await Teltasync.create(
             base_url="https://192.168.1.1/api",
             username="admin",
             password="password",
-            verify_ssl=False
         )
-
-        assert isinstance(client, Teltasync)
+        _ = client.session
         await client.close()
 
-
-class TestTeltasyncContextManager:
-    """Test async context manager functionality."""
-
-    @pytest.mark.asyncio
-    async def test_async_context_manager(self):
-        """Test using Teltasync as async context manager."""
-        with patch('aiohttp.ClientSession'):
-            async with Teltasync(
-                base_url="https://192.168.1.1/api",
-                username="admin",
-                password="password"
-            ) as client:
-                assert isinstance(client, Teltasync)
-
-    @pytest.mark.asyncio
-    async def test_close_with_own_session(self):
-        """Test closing client with own session."""
-        mock_session = AsyncMock(spec=ClientSession)
-
-        with patch('teltasync.teltasync.ClientSession', return_value=mock_session):
-            client = Teltasync(
-                base_url="https://192.168.1.1/api",
-                username="admin",
-                password="password"
-            )
-
-            # Trigger session creation
-            await client._ensure_session()
-
-            await client.close()
-            mock_session.close.assert_called_once()
-            assert client._session is None
-
-    @pytest.mark.asyncio
-    async def test_close_with_external_session(self):
-        """Test closing client with external session (should not close it)."""
-        mock_session = AsyncMock(spec=ClientSession)
-        client = Teltasync(
-            base_url="https://192.168.1.1/api",
-            username="admin",
-            password="password",
-            session=mock_session
-        )
-
-        await client.close()
-        # Should not call close on external session
-        mock_session.close.assert_not_called()
+    mock_session.close.assert_called_once()
 
 
-class TestTeltasyncSimpleInterface:
-    """Test the simple python-tado style interface methods."""
-
-    @pytest.fixture
-    def client(self):
-        """Create a Teltasync client with mocked components."""
-        mock_session = Mock(spec=ClientSession)
-        client = Teltasync(
-            base_url="https://192.168.1.1/api",
-            username="admin",
-            password="password",
-            session=mock_session
-        )
-
-        # Mock the internal components
-        client._auth = Mock()
-        client._system = Mock()
-        client._modems = Mock()
-        client._unauthorized = Mock()
-
-        return client
-
-    @pytest.mark.asyncio
-    async def test_get_device_info_success(self, client):
-        """Test successful device info retrieval."""
-        device_info = Mock(spec=UnauthorizedStatusData)
-        mock_response = ApiResponse[UnauthorizedStatusData](
-            success=True,
-            data=device_info
-        )
-        client._unauthorized.get_status = AsyncMock(return_value=mock_response)
-
-        result = await client.get_device_info()
-        assert result == device_info
-        client._unauthorized.get_status.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_get_device_info_failure(self, client):
-        """Test device info retrieval failure."""
-        mock_response = ApiResponse[UnauthorizedStatusData](
-            success=False,
-            data=None
-        )
-        client._unauthorized.get_status = AsyncMock(return_value=mock_response)
-
-        with pytest.raises(TeltonikaConnectionError, match="Failed to get device info"):
-            await client.get_device_info()
-
-    @pytest.mark.asyncio
-    async def test_validate_credentials_success(self, client):
-        """Test successful credential validation."""
-        client._auth.authenticate = AsyncMock()
-        client._auth.logout = AsyncMock()
-
-        result = await client.validate_credentials()
-        assert result is True
-        client._auth.authenticate.assert_called_once()
-        client._auth.logout.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_validate_credentials_failure(self, client):
-        """Test credential validation failure."""
-        client._auth.authenticate = AsyncMock(side_effect=TeltonikaAuthenticationError("Invalid credentials"))
-        client._auth.logout = AsyncMock(return_value=False)
-
-        result = await client.validate_credentials()
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_get_system_info_success(self, client):
-        """Test successful system info retrieval."""
-        system_data = Mock(spec=DeviceStatusData)
-        mock_response = ApiResponse[DeviceStatusData](
-            success=True,
-            data=system_data
-        )
-        client._system.get_device_status = AsyncMock(return_value=mock_response)
-
-        result = await client.get_system_info()
-        assert result == system_data
-
-    @pytest.mark.asyncio
-    async def test_get_system_info_failure(self, client):
-        """Test system info retrieval failure."""
-        mock_response = ApiResponse[DeviceStatusData](
-            success=False,
-            data=None
-        )
-        client._system.get_device_status = AsyncMock(return_value=mock_response)
-
-        with pytest.raises(TeltonikaConnectionError, match="Failed to get system info"):
-            await client.get_system_info()
-
-    @pytest.mark.asyncio
-    async def test_get_modem_status_success(self, client):
-        """Test successful modem status retrieval."""
-        modem_data = [Mock(spec=ModemStatusFull)]
-        mock_response = ApiResponse[list](
-            success=True,
-            data=modem_data
-        )
-        client._modems.get_status = AsyncMock(return_value=mock_response)
-
-        result = await client.get_modem_status()
-        assert result == modem_data
-
-    @pytest.mark.asyncio
-    async def test_get_modem_status_failure(self, client):
-        """Test modem status retrieval failure."""
-        mock_response = ApiResponse[list](
-            success=False,
-            data=None
-        )
-        client._modems.get_status = AsyncMock(return_value=mock_response)
-
-        with pytest.raises(TeltonikaConnectionError, match="Failed to get modem status"):
-            await client.get_modem_status()
-
-    @pytest.mark.asyncio
-    async def test_reboot_device_success(self, client):
-        """Test successful device reboot."""
-        mock_response = ApiResponse[dict](success=True)
-        client._system.reboot = AsyncMock(return_value=mock_response)
-
-        result = await client.reboot_device()
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_reboot_device_failure(self, client):
-        """Test device reboot failure."""
-        mock_response = ApiResponse[dict](success=False)
-        client._system.reboot = AsyncMock(return_value=mock_response)
-
-        result = await client.reboot_device()
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_reboot_device_none_response(self, client):
-        """Test device reboot with None response."""
-        client._system.reboot = AsyncMock(return_value=None)
-
-        result = await client.reboot_device()
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_logout_success(self, client):
-        """Test successful logout."""
-        mock_response = ApiResponse[dict](success=True)
-        client._auth.logout = AsyncMock(return_value=mock_response)
-
-        result = await client.logout()
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_logout_failure(self, client):
-        """Test logout failure."""
-        mock_response = ApiResponse[dict](success=False)
-        client._auth.logout = AsyncMock(return_value=mock_response)
-
-        result = await client.logout()
-        assert result is False
+@pytest.mark.asyncio
+async def test_close_with_external_session_does_not_close_it(client):
+    """Test closing client with external session does not close it."""
+    external_session = client.session
+    await client.close()
+    external_session.close.assert_not_called()
 
 
-class TestTeltasyncRichAPIAccess:
-    """Test access to rich API components."""
+@pytest.mark.asyncio
+async def test_async_context_manager_with_external_session(client):
+    """Test using Teltasync as async context manager."""
+    async with client as wrapped_client:
+        assert wrapped_client is client
 
-    def test_rich_api_properties(self):
-        """Test that rich API components are accessible."""
-        mock_session = Mock(spec=ClientSession)
-        client = Teltasync(
-            base_url="https://192.168.1.1/api",
-            username="admin",
-            password="password",
-            session=mock_session
-        )
 
-        # Test that all rich API components are accessible
-        assert client.auth is not None
-        assert client.system is not None
-        assert client.modems is not None
-        assert client.unauthorized is not None
+@pytest.mark.asyncio
+async def test_get_device_info_from_fixture(
+    client,
+    unauthorized_status_response,
+    snapshot,
+):
+    """Test device info retrieval against fixture content."""
+    client.unauthorized.get_status = AsyncMock(
+        return_value=unauthorized_status_response
+    )
 
-        # Test that they return the actual component instances
-        assert client.auth is client._auth
-        assert client.system is client._system
-        assert client.modems is client._modems
-        assert client.unauthorized is client._unauthorized
+    result = await client.get_device_info()
+    assert result == snapshot
+
+
+@pytest.mark.asyncio
+async def test_get_device_info_failure(client):
+    """Test device info retrieval failure."""
+    client.unauthorized.get_status = AsyncMock(
+        return_value=ApiResponse[UnauthorizedStatusData](success=False, data=None)
+    )
+
+    with pytest.raises(TeltonikaConnectionError, match="Failed to get device info"):
+        await client.get_device_info()
+
+
+@pytest.mark.parametrize(
+    ("auth_side_effect", "expected"),
+    [(None, True), (TeltonikaAuthenticationError("Invalid credentials"), False)],
+)
+@pytest.mark.asyncio
+async def test_validate_credentials(client, auth_side_effect, expected: bool):
+    """Test credential validation outcome for success and auth failure."""
+    if auth_side_effect is None:
+        client.auth.authenticate = AsyncMock()
+    else:
+        client.auth.authenticate = AsyncMock(side_effect=auth_side_effect)
+    client.auth.logout = AsyncMock()
+
+    result = await client.validate_credentials()
+    assert result is expected
+
+
+@pytest.mark.asyncio
+async def test_get_system_info_from_fixture(
+    client,
+    system_status_response,
+    snapshot,
+):
+    """Test system info retrieval against fixture content."""
+    client.system.get_device_status = AsyncMock(return_value=system_status_response)
+
+    result = await client.get_system_info()
+    assert result == snapshot
+
+
+@pytest.mark.asyncio
+async def test_get_system_info_failure(client):
+    """Test system info retrieval failure."""
+    client.system.get_device_status = AsyncMock(
+        return_value=ApiResponse[DeviceStatusData](success=False, data=None)
+    )
+
+    with pytest.raises(TeltonikaConnectionError, match="Failed to get system info"):
+        await client.get_system_info()
+
+
+@pytest.mark.asyncio
+async def test_get_modem_status_from_fixture(
+    client,
+    modems_status_response,
+    snapshot,
+):
+    """Test modem status retrieval against fixture content."""
+    client.modems.get_status = AsyncMock(return_value=modems_status_response)
+
+    result = await client.get_modem_status()
+    first_modem = result[0]
+
+    assert len(result) == 1
+    assert isinstance(first_modem, ModemStatusFull)
+    assert result == snapshot
+
+
+@pytest.mark.asyncio
+async def test_get_modem_status_failure(client):
+    """Test modem status retrieval failure."""
+    client.modems.get_status = AsyncMock(return_value=ApiResponse[list](success=False))
+
+    with pytest.raises(TeltonikaConnectionError, match="Failed to get modem status"):
+        await client.get_modem_status()
+
+
+@pytest.mark.parametrize(
+    ("response", "expected"),
+    [
+        (ApiResponse[dict](success=True), True),
+        (ApiResponse[dict](success=False), False),
+        (None, False),
+    ],
+)
+@pytest.mark.asyncio
+async def test_reboot_device_outcome(client, response, expected: bool):
+    """Test reboot_device return value mapping."""
+    client.system.reboot = AsyncMock(return_value=response)
+
+    result = await client.reboot_device()
+    assert result is expected
+
+
+@pytest.mark.parametrize(
+    ("response", "expected"),
+    [
+        (ApiResponse[dict](success=True), True),
+        (ApiResponse[dict](success=False), False),
+    ],
+)
+@pytest.mark.asyncio
+async def test_logout_outcome(client, response, expected: bool):
+    """Test logout return value mapping."""
+    client.auth.logout = AsyncMock(return_value=response)
+
+    result = await client.logout()
+    assert result is expected
+
+
+def test_rich_api_properties_are_cached(client):
+    """Test that rich API clients are accessible and cached."""
+    auth = client.auth
+    system = client.system
+    modems = client.modems
+    unauthorized = client.unauthorized
+
+    assert auth is client.auth
+    assert system is client.system
+    assert modems is client.modems
+    assert unauthorized is client.unauthorized

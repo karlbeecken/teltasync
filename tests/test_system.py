@@ -1,59 +1,85 @@
-"""Tests for system functionality."""
+"""Tests for system endpoint functionality."""
 
-import json
-import pytest
-from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
-from teltasync import Teltasync
-from teltasync.api_base import ApiResponse
-from teltasync.system import DeviceStatusData, System
+import pytest
+
+from teltasync.system import DeviceStatusData, RebootResponse, System
+from tests.helpers import load_fixture
 
 
-@pytest.fixture
-def mock_auth():
+@pytest.fixture(name="device_status_fixture")
+def fixture_device_status():
+    """Load device status fixture data."""
+    return load_fixture("system", "device_status.json")
+
+
+@pytest.fixture(name="mock_auth")
+def fixture_mock_auth():
     """Create a mock auth object."""
     auth = Mock()
     auth.request = AsyncMock()
     return auth
 
 
-@pytest.fixture
-def mock_session():
-    """Create a mock aiohttp session."""
-    return Mock()
-
-
-@pytest.fixture
-def client(mock_session):
-    """Create a Teltasync client with mock session."""
-    return Teltasync(
-        base_url="http://localhost/api",
-        username="user",
-        password="pass",
-        session=mock_session
-    )
-
-
-@pytest.fixture
-def mock_device_status_response():
-    """Provide a mock device status response for tests."""
-    fixture_path = Path(__file__).parent / "fixtures" / "system" / "device_status.json"
-    with open(fixture_path) as f:
-        data = json.load(f)
-    return ApiResponse[DeviceStatusData](**data)
-
-
 class TestSystemClient:
-    """Test the System client functionality via Teltasync."""
+    """Test the System endpoint wrapper."""
 
     @pytest.mark.asyncio
-    async def test_get_device_status_success(self, client, mock_device_status_response):
-        """Test getting device status successfully."""
-        # Mock the system get_device_status method
-        client.system.get_device_status = AsyncMock(return_value=mock_device_status_response)
+    async def test_get_device_status_parses_fixture(
+        self,
+        mock_auth,
+        device_status_fixture,
+        snapshot,
+    ):
+        """Test device status parsing against fixture content."""
+        mock_response = AsyncMock()
+        mock_response.json.return_value = device_status_fixture
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
 
-        result = await client.system.get_device_status()
-        assert isinstance(result.data, DeviceStatusData)
-        assert hasattr(result.data, "mnf_info")  # Correct attribute name
-        assert hasattr(result.data.board, "hw_info")  # Correct attribute name
+        system = System(mock_auth)
+        result = await system.get_device_status()
+
+        assert result.success is True
+        data = result.data
+        assert isinstance(data, DeviceStatusData)
+
+        assert data == snapshot
+        assert data.board.hw_info.field_2_5_gigabit_port is False
+        mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
+
+    @pytest.mark.asyncio
+    async def test_reboot_success(self, mock_auth):
+        """Test reboot endpoint success payload parsing."""
+        reboot_payload = {"success": True, "data": {}}
+        mock_response = AsyncMock()
+        mock_response.json.return_value = reboot_payload
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
+
+        system = System(mock_auth)
+        result = await system.reboot()
+
+        assert result.success is True
+        assert isinstance(result.data, RebootResponse)
+        assert result.data.model_dump() == {}
+        mock_auth.request.assert_awaited_once_with("POST", "system/actions/reboot")
+
+    @pytest.mark.asyncio
+    async def test_reboot_failure(self, mock_auth):
+        """Test reboot endpoint error payload parsing."""
+        reboot_payload = {
+            "success": False,
+            "errors": [{"code": 100, "error": "Response not implemented"}],
+        }
+        mock_response = AsyncMock()
+        mock_response.json.return_value = reboot_payload
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
+
+        system = System(mock_auth)
+        result = await system.reboot()
+
+        assert result.success is False
+        assert result.data is None
+        assert result.errors is not None
+        assert result.errors[0].code == 100
+        assert result.errors[0].error == "Response not implemented"

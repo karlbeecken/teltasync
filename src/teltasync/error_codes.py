@@ -60,7 +60,7 @@ ERROR_DESCRIPTIONS: Dict[int, str] = {
     120: "Unauthorized access",
     121: "Login failed for any reason",
     122: "General structure of request is incorrect",
-    123: "JWT token that is provided with authorization header is invalid - unparsable, incomplete, etc.",
+    123: "JWT token that is provided with authorization header is invalid",
     150: "Not enough free space in the device (when uploading files)",
     151: "File size is bigger than the maximum size allowed (when uploading files)",
 }

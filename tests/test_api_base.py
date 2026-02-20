@@ -1,6 +1,6 @@
 """Tests for the base API response handling and error codes."""
 
-from teltasync.api_base import ApiResponse, ApiError
+from teltasync.api_base import ApiError, ApiResponse
 
 
 class TestApiError:
@@ -8,12 +8,7 @@ class TestApiError:
 
     def test_api_error_creation(self):
         """Test creating an ApiError."""
-        error = ApiError(
-            code=121,
-            error="Login failed",
-            source="auth",
-            section="login"
-        )
+        error = ApiError(code=121, error="Login failed", source="auth", section="login")
 
         assert error.code == 121
         assert error.error == "Login failed"
@@ -37,7 +32,7 @@ class TestApiResponse:
         """Test successful API response."""
         response_data = {
             "success": True,
-            "data": {"username": "test", "token": "abc123", "expires": 3600}
+            "data": {"username": "test", "token": "abc123", "expires": 3600},
         }
 
         response = ApiResponse[dict](**response_data)
@@ -52,17 +47,19 @@ class TestApiResponse:
             "success": False,
             "errors": [
                 {"code": 121, "error": "Login failed", "source": "auth"},
-                {"code": 100, "error": "Generic error"}
-            ]
+                {"code": 100, "error": "Generic error"},
+            ],
         }
 
         response = ApiResponse[dict](**response_data)
 
         assert response.success is False
         assert response.data is None
-        assert len(response.errors) == 2
-        assert response.errors[0].code == 121
-        assert response.errors[1].code == 100
+        errors = response.errors
+        assert errors is not None
+        assert len(errors) == 2
+        assert errors[0].code == 121
+        assert errors[1].code == 100
 
     def test_get_error_by_code(self):
         """Test getting error by code."""
@@ -71,8 +68,8 @@ class TestApiResponse:
             "errors": [
                 {"code": 121, "error": "Login failed"},
                 {"code": 100, "error": "Generic error"},
-                {"code": 122, "error": "Invalid structure"}
-            ]
+                {"code": 122, "error": "Invalid structure"},
+            ],
         }
 
         response = ApiResponse[dict](**response_data)
@@ -99,14 +96,14 @@ class TestApiResponse:
             "data": {
                 "field1": "N/A",
                 "field2": "actual_value",
-                "nested": {
-                    "nested_field": "N/A"
-                }
-            }
+                "nested": {"nested_field": "N/A"},
+            },
         }
 
         response = ApiResponse[dict](**response_data)
 
-        assert response.data["field1"] is None
-        assert response.data["field2"] == "actual_value"
-        assert response.data["nested"]["nested_field"] is None
+        data = response.data
+        assert data is not None
+        assert data["field1"] is None
+        assert data["field2"] == "actual_value"
+        assert data["nested"]["nested_field"] is None

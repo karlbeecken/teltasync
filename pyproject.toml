@@ -1,35 +1,39 @@
 [project]
 name = "teltasync"
 version = "0.1.5"
+description = "Async, typed API client for Teltonika routers, built for Home Assistant"
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-description = "Async, typed API client for Teltonika routers, built for Home Assistant"
-authors = [{ name = "Karl Beecken", email = "<karl@beecken.berlin>" }]
-packages = [
-    { include = "teltasync", from = "src" }
+authors = [{ name = "Karl Beecken", email = "karl+teltasync@beecken.berlin" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
-readme = "README.md"
+dependencies = [
+  "aiohttp>=3.13.3,<4",
+  "pydantic>=2.7,<3",
+]
 
 [project.urls]
 Repository = "https://codeberg.org/dmho/teltasync"
 
-[tool.poetry.dependencies]
-python = ">=3.13"
-aiohttp = "^3.13.3"
-pydantic = "^2.7"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2"
-pytest-asyncio = "^0.23"
-aioresponses = "^0.7"
-watchdog = "^5.0"
-pytest-watch = "^4.2"
-mypy = "^1.18.2"
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-addopts = "-q"
+[dependency-groups]
+dev = [
+  "aioresponses>=0.7,<0.8",
+  "mypy>=1.18.2,<2",
+  "pylint>=4.0.5",
+  "pytest>=8.2,<9",
+  "pytest-asyncio>=0.23,<0.24",
+  "pytest-cov>=7.0.0",
+  "syrupy>=4.6.1,<5",
+  "pytest-watch>=4.2,<5",
+  "ruff>=0.15.2",
+  "watchdog>=5.0,<6",
+]
 
 [build-system]
-requires = ["poetry-core>=1.8.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.10.2,<0.11.0"]
+build-backend = "uv_build"

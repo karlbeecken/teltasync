@@ -9,6 +9,7 @@ from teltasync.base_model import TeltasyncBaseModel
 
 class ManufacturingInfo(TeltasyncBaseModel):
     """Manufacturing metadata returned by /system/device/status."""
+
     mac_eth: str = Field(alias="macEth", description="Ethernet WAN MAC address")
     name: str = Field(description="Product code")
     hw_ver: str = Field(alias="hwver", description="Hardware revision")
@@ -20,6 +21,7 @@ class ManufacturingInfo(TeltasyncBaseModel):
 
 class ReleaseInfo(TeltasyncBaseModel):
     """Firmware release summary."""
+
     distribution: str = Field(description="Distribution name")
     revision: str = Field(description="Revision")
     version: str = Field(description="Version of release")
@@ -29,6 +31,7 @@ class ReleaseInfo(TeltasyncBaseModel):
 
 class StaticInfo(TeltasyncBaseModel):
     """Firmware and hardware identifiers for the device."""
+
     fw_version: str = Field(description="Firmware version")
     kernel: str = Field(description="Kernel version")
     system: str = Field(description="Processor name")
@@ -43,11 +46,13 @@ class StaticInfo(TeltasyncBaseModel):
 
 class Features(TeltasyncBaseModel):
     """Feature flags advertised by the device."""
+
     ipv6: bool = Field(description="IPv6 support")
 
 
 class Modem(TeltasyncBaseModel):
     """Single modem entry in the system response."""
+
     id: str = Field(description="Modem ID")
     num: str = Field(description="Modem number")
     builtin: bool = Field(description="Modem built-in")
@@ -76,6 +81,7 @@ class Modem(TeltasyncBaseModel):
 
 class NetworkInterface(TeltasyncBaseModel):
     """Configuration values for a network interface."""
+
     proto: str = Field(description="Protocol")
     device: str = Field(description="Device name")
     default_ip: str | None = Field(None, description="Default IP address")
@@ -83,12 +89,14 @@ class NetworkInterface(TeltasyncBaseModel):
 
 class NetworkConfig(TeltasyncBaseModel):
     """WAN and LAN interface configuration."""
+
     wan: NetworkInterface
     lan: NetworkInterface
 
 
 class ModelInfo(TeltasyncBaseModel):
     """Identifier and marketing name for the device."""
+
     id: str = Field(description="Model ID")
     platform: str = Field(description="Model platform")
     name: str = Field(description="Model name")
@@ -96,6 +104,7 @@ class ModelInfo(TeltasyncBaseModel):
 
 class NetworkOptions(TeltasyncBaseModel):
     """Limits and defaults used by the switch configuration."""
+
     readonly_vlans: int
     max_mtu: int
     vlans: int
@@ -103,6 +112,7 @@ class NetworkOptions(TeltasyncBaseModel):
 
 class SwitchRole(TeltasyncBaseModel):
     """Mapping of switch ports to their assigned role."""
+
     ports: str = Field(description="Switch ports")
     role: str = Field(description="Switch role")
     device: str = Field(description="Switch device")
@@ -110,6 +120,7 @@ class SwitchRole(TeltasyncBaseModel):
 
 class SwitchPort(TeltasyncBaseModel):
     """Switch port definition with tagging hints."""
+
     device: str | None = Field(None, description="Switch port device")
     num: int = Field(description="Switch port number")
     want_untag: bool | None = Field(None, description="Switch port want untag")
@@ -120,6 +131,7 @@ class SwitchPort(TeltasyncBaseModel):
 
 class SwitchConfig(TeltasyncBaseModel):
     """Complete switch profile for switch0."""
+
     enable: bool
     roles: list[SwitchRole]
     ports: list[SwitchPort]
@@ -128,17 +140,21 @@ class SwitchConfig(TeltasyncBaseModel):
 
 class Switch(TeltasyncBaseModel):
     """Wrapper for switch configuration blocks."""
+
     switch0: SwitchConfig
 
 
 class HardwareInfo(TeltasyncBaseModel):
     """Hardware capabilities advertised by the platform."""
+
     wps: bool | None = Field(None, description="WPS support")
     rs232: bool | None = Field(None, description="RS232 support")
     nat_offloading: bool | None = Field(None, description="NAT Offloading support")
     dual_sim: bool | None = Field(None, description="Dual SIM support")
     bluetooth: bool | None = Field(None, description="Bluetooth support")
-    soft_port_mirror: bool | None = Field(None, description="Software Port Mirroring support")
+    soft_port_mirror: bool | None = Field(
+        None, description="Software Port Mirroring support"
+    )
     vcert: bool | None = Field(None, description="VCert support")
     micro_usb: bool | None = Field(None, description="Micro USB support")
     wifi: bool | None = Field(None, description="WiFi support")
@@ -162,8 +178,9 @@ class HardwareInfo(TeltasyncBaseModel):
     mobile: bool | None = Field(None, description="Mobile support")
     poe: bool | None = Field(None, description="POE support")
     gigabit_port: bool | None = Field(None, description="Gigabit port support")
-    field_2_5_gigabit_port: bool | None = Field(None, alias="2_5_gigabit_port",
-                                                description="2.5 Gigabit port support")
+    field_2_5_gigabit_port: bool | None = Field(
+        None, alias="2_5_gigabit_port", description="2.5 Gigabit port support"
+    )
 
     # Additional undocumented fields found in the response
     esim: bool | None = Field(None, description="eSIM support")
@@ -172,6 +189,7 @@ class HardwareInfo(TeltasyncBaseModel):
 
 class BoardInfo(TeltasyncBaseModel):
     """High-level board configuration including modems and switch."""
+
     modems: list[Modem]
     network: NetworkConfig
     model: ModelInfo
@@ -183,6 +201,7 @@ class BoardInfo(TeltasyncBaseModel):
 
 class DeviceStatusData(TeltasyncBaseModel):
     """Aggregated payload returned by the status endpoint."""
+
     mnf_info: ManufacturingInfo = Field(alias="mnfinfo")
     static: StaticInfo
     features: Features
@@ -191,7 +210,6 @@ class DeviceStatusData(TeltasyncBaseModel):
 
 class RebootResponse(TeltasyncBaseModel):
     """Minimal response body for reboot requests."""
-    pass
 
 
 class System:

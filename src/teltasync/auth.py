@@ -1,7 +1,9 @@
+"""Authentication client and payload models for Teltonika API sessions."""
+
 import asyncio
 import time
 
-from aiohttp import ClientConnectorError, ClientSession, ClientTimeout
+from aiohttp import ClientConnectorError, ClientError, ClientSession, ClientTimeout
 from pydantic import BaseModel
 
 from teltasync.api_base import ApiResponse
@@ -13,28 +15,38 @@ from teltasync.exceptions import (
 
 
 class TokenData(BaseModel):
+    """Session token details returned by `/login`."""
+
     username: str
     token: str
     expires: int
 
 
 class LogoutResponse(BaseModel):
+    """Response body returned by `/logout`."""
+
     response: str
 
 
 class SessionStatusData(BaseModel):
+    """Boolean wrapper for session activity status."""
+
     active: bool
 
 
-class Auth:
+class Auth:  # pylint: disable=too-many-instance-attributes
+    """Authenticated HTTP client used by other endpoint wrappers."""
+
     def __init__(
-            self,
-            session: ClientSession,
-            base_url: str,
-            username: str,
-            password: str,
-            check_certificate: bool = True,
-    ):
+        self,
+        session: ClientSession,
+        base_url: str,
+        username: str,
+        password: str,
+        check_certificate: bool = True,
+    ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+        """Initialize credentials and token state for API access."""
+
         self.session = session
         self.base_url = base_url
         self.username = username
@@ -49,18 +61,26 @@ class Auth:
 
     @property
     def token(self) -> str | None:
+        """Return the currently cached bearer token."""
+
         return self._token
 
     @property
     def is_authenticated(self) -> bool:
+        """Return ``True`` when a token exists and auth state is active."""
+
         return self._authenticated and self._token is not None
 
     def is_token_expired(self) -> bool:
+        """Return whether the cached token is missing or near expiration."""
+
         if not self._token or not self._token_expires or not self._token_time:
             return True
         return time.time() - self._token_time >= self._token_expires - 5
 
     def clear_token(self) -> None:
+        """Clear all in-memory token metadata."""
+
         self._token = None
         self._token_expires = None
         self._token_username = None
@@ -68,12 +88,14 @@ class Auth:
         self._authenticated = False
 
     async def authenticate(self) -> ApiResponse[TokenData]:
+        """Authenticate with username/password and cache the returned token."""
+
         try:
             async with self.session.post(
-                    f"{self.base_url}/login",
-                    json={"username": self.username, "password": self.password},
-                    ssl=self.check_certificate,
-                    timeout=ClientTimeout(total=10.0),
+                f"{self.base_url}/login",
+                json={"username": self.username, "password": self.password},
+                ssl=self.check_certificate,
+                timeout=ClientTimeout(total=10.0),
             ) as resp:
                 status = resp.status
                 payload = await resp.json()
@@ -87,11 +109,12 @@ class Auth:
                 f"Connection timeout to device at {self.base_url}",
                 exc,
             ) from exc
-        except Exception as exc:
+        except (ClientError, OSError, ValueError) as exc:
             message = str(exc)
             timeout_hit = "timeout" in message.lower()
+            error_kind = "timeout" if timeout_hit else "error"
             raise TeltonikaConnectionError(
-                f"Connection {'timeout' if timeout_hit else 'error'} to device at {self.base_url}: {message}",
+                f"Connection {error_kind} to device at {self.base_url}: {message}",
                 exc,
             ) from exc
 
@@ -118,6 +141,8 @@ class Auth:
         raise TeltonikaAuthenticationError("Authentication failed")
 
     async def logout(self) -> ApiResponse[LogoutResponse]:
+        """Invalidate the current session token on the device."""
+
         if self._token is None:
             return ApiResponse[LogoutResponse](
                 success=True,
@@ -126,10 +151,10 @@ class Auth:
 
         try:
             async with self.session.post(
-                    f"{self.base_url}/logout",
-                    headers={"Authorization": f"Bearer {self._token}"},
-                    ssl=self.check_certificate,
-                    timeout=ClientTimeout(total=10.0),
+                f"{self.base_url}/logout",
+                headers={"Authorization": f"Bearer {self._token}"},
+                ssl=self.check_certificate,
+                timeout=ClientTimeout(total=10.0),
             ) as resp:
                 payload = await resp.json()
                 return ApiResponse[LogoutResponse](**payload)
@@ -137,6 +162,8 @@ class Auth:
             self.clear_token()
 
     async def get_session_status(self) -> ApiResponse[SessionStatusData]:
+        """Return whether the current token still maps to an active session."""
+
         if self._token is None:
             return ApiResponse[SessionStatusData](
                 success=True,
@@ -145,13 +172,13 @@ class Auth:
 
         try:
             async with self.session.get(
-                    f"{self.base_url}/session/status",
-                    headers={"Authorization": f"Bearer {self._token}"},
-                    ssl=self.check_certificate,
-                    timeout=ClientTimeout(total=10.0),
+                f"{self.base_url}/session/status",
+                headers={"Authorization": f"Bearer {self._token}"},
+                ssl=self.check_certificate,
+                timeout=ClientTimeout(total=10.0),
             ) as resp:
                 payload = await resp.json()
-        except Exception:
+        except (ClientError, OSError, ValueError, asyncio.TimeoutError):
             self.clear_token()
             return ApiResponse[SessionStatusData](
                 success=True,
@@ -164,6 +191,8 @@ class Auth:
         return response
 
     async def request(self, method: str, endpoint: str, **kwargs):
+        """Build an authenticated request context manager for callers."""
+
         if self.is_token_expired():
             await self.authenticate()
 

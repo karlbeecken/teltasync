@@ -1,0 +1,53 @@
+# serializer version: 1
+# name: TestUnauthorizedClient.test_get_status_success_from_fixture[status]
+  dict({
+    'api_version': '1.9.2',
+    'device_identifier': '123456781234567812345678',
+    'device_model': 'RUTX50',
+    'device_name': 'RUTX50',
+    'lang': 'en',
+  })
+# ---
+# name: TestUnauthorizedClient.test_get_status_success_from_fixture[status_with_banner]
+  dict({
+    'api_version': '1.9.2',
+    'device_identifier': '123456781234567812345678',
+    'device_model': 'RUTX50',
+    'device_name': 'Test Device',
+    'lang': 'en',
+    'security_banner': dict({
+      'message': '''
+        This system is for authorized use only. All activities on this system are logged and monitored. By using this system, you consent to such monitoring. Unauthorized access or misuse may result in disciplinary action, civil and criminal penalties, or both.
+        
+        If you are not authorized to use this system, disconnect immediately.
+      ''',
+      'title': 'Unauthorized access prohibited',
+    }),
+  })
+# ---
+# name: TestUnauthorizedStatusData.test_unauthorized_status_from_fixture
+  dict({
+    'api_version': '1.9.2',
+    'device_identifier': '123456781234567812345678',
+    'device_model': 'RUTX50',
+    'device_name': 'RUTX50',
+    'lang': 'en',
+  })
+# ---
+# name: TestUnauthorizedStatusData.test_unauthorized_status_with_banner_from_fixture
+  dict({
+    'api_version': '1.9.2',
+    'device_identifier': '123456781234567812345678',
+    'device_model': 'RUTX50',
+    'device_name': 'Test Device',
+    'lang': 'en',
+    'security_banner': dict({
+      'message': '''
+        This system is for authorized use only. All activities on this system are logged and monitored. By using this system, you consent to such monitoring. Unauthorized access or misuse may result in disciplinary action, civil and criminal penalties, or both.
+        
+        If you are not authorized to use this system, disconnect immediately.
+      ''',
+      'title': 'Unauthorized access prohibited',
+    }),
+  })
+# ---

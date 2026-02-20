@@ -17,16 +17,11 @@ PinState = Literal[
     "Not inserted",
     "SIM failure",
     "Busy",
-    "PUK"
+    "PUK",
 ]
 
 OperatorState = Literal[
-    "Not registered",
-    "Registered, home",
-    "Searching",
-    "Denied",
-    "Unknown",
-    "Roaming"
+    "Not registered", "Registered, home", "Searching", "Denied", "Unknown", "Roaming"
 ]
 
 
@@ -53,7 +48,7 @@ def decode_ue_state(ue_state: int | None) -> str | None:
         5: "Disconnecting",
         6: "Emergency Attached",
         7: "Limited Service",
-        8: "No Service"
+        8: "No Service",
     }
 
     return ue_states.get(ue_state, f"Unknown UE state ({ue_state})")
@@ -62,7 +57,9 @@ def decode_ue_state(ue_state: int | None) -> str | None:
 def decode_mobile_stage(mobile_stage: int | None) -> str | None:
     """Decode mobile stage code to human-readable description.
 
-    Key from https://developers.teltonika-networks.com/reference/rutx50/7.13.3/v1.5/modems#get-modems-status-id
+    Key from:
+    https://developers.teltonika-networks.com/reference/rutx50/7.13.3/v1.5/
+    modems#get-modems-status-id
 
     Args:
         mobile_stage: The mobile stage code (integer)
@@ -93,7 +90,7 @@ def decode_mobile_stage(mobile_stage: int | None) -> str | None:
         16: "Setting up data connection settings",
         17: "Clearing PDP context",
         18: "Currently handling config",
-        19: "Mobile connection setup is complete"
+        19: "Mobile connection setup is complete",
     }
 
     return mobile_stages.get(mobile_stage, f"Unknown mobile stage ({mobile_stage})")
@@ -101,6 +98,7 @@ def decode_mobile_stage(mobile_stage: int | None) -> str | None:
 
 class CellInfo(TeltasyncBaseModel):
     """Cell information for modem."""
+
     mcc: str | None = Field(None, description="Mobile Country Code")
     mnc: str | None = Field(None, description="Mobile Network Code")
     cell_id: str | None = Field(None, alias="cellid", description="Cell ID")
@@ -113,8 +111,12 @@ class CellInfo(TeltasyncBaseModel):
     uarfcn: str | int | None = Field(None, description="UARFCN")
     nr_arfcn: str | int | None = Field(None, alias="nr-arfcn", description="NR-ARFCN")
     rsrp: str | int | None = Field(None, description="Reference Signal Received Power")
-    rsrq: str | int | None = Field(None, description="Reference Signal Received Quality")
-    sinr: str | int | None = Field(None, description="Signal to Interference plus Noise Ratio")
+    rsrq: str | int | None = Field(
+        None, description="Reference Signal Received Quality"
+    )
+    sinr: str | int | None = Field(
+        None, description="Signal to Interference plus Noise Ratio"
+    )
     bandwidth: str | None = Field(None, description="Bandwidth")
 
     @computed_field
@@ -125,16 +127,22 @@ class CellInfo(TeltasyncBaseModel):
 
 class ServiceModes(TeltasyncBaseModel):
     """Service modes available for each network type."""
+
     field_2g: list[str] | None = Field(None, alias="2G", description="2G service modes")
     field_3g: list[str] | None = Field(None, alias="3G", description="3G service modes")
     field_4g: list[str] | None = Field(None, alias="4G", description="4G service modes")
     nb: list[str] | None = Field(None, alias="NB", description="NB-IoT service modes")
-    field_5g_nsa: list[str] | None = Field(None, alias="5G_NSA", description="5G NSA service modes")
-    field_5g_sa: list[str] | None = Field(None, alias="5G_SA", description="5G SA service modes")
+    field_5g_nsa: list[str] | None = Field(
+        None, alias="5G_NSA", description="5G NSA service modes"
+    )
+    field_5g_sa: list[str] | None = Field(
+        None, alias="5G_SA", description="5G SA service modes"
+    )
 
 
 class CarrierAggregationSignal(TeltasyncBaseModel):
     """Carrier aggregation signal information."""
+
     band: str | None = Field(None, description="Band")
     bandwidth: str | None = Field(None, description="Bandwidth")
     sinr: int | None = Field(None, description="SINR")
@@ -148,12 +156,15 @@ class CarrierAggregationSignal(TeltasyncBaseModel):
 
 class ModemStatusFull(TeltasyncBaseModel):
     """Full modem status when online."""
+
     id: str = Field(description="Modem ID")
     imei: str | None = Field(None, description="IMEI")
     model: str | None = Field(None, description="Modem model")
     cell_info: list[CellInfo] | None = Field(None, description="Cell information")
     dynamic_mtu: bool | None = Field(None, description="Dynamic MTU support")
-    service_modes: ServiceModes | None = Field(None, description="Available service modes")
+    service_modes: ServiceModes | None = Field(
+        None, description="Available service modes"
+    )
     lac: str | None = Field(None, description="Location Area Code")
     tac: str | None = Field(None, description="Tracking Area Code")
     name: str | None = Field(None, description="Modem name")
@@ -183,37 +194,57 @@ class ModemStatusFull(TeltasyncBaseModel):
     rxbytes: int | None = Field(None, description="Received bytes")
     baudrate: int | None = Field(None, description="Baudrate")
     is_busy: int | None = Field(None, description="Is busy")
-    data_off: bool | None = Field(None, description="Data turned off with mobileoff SMS")
+    data_off: bool | None = Field(
+        None, description="Data turned off with mobileoff SMS"
+    )
     busy_state: str | None = Field(None, description="Busy state")
     busy_state_id: int | None = Field(None, description="Busy state ID")
     pinstate: PinState | None = Field(None, description="PIN state")
-    pinstate_id: int | None = Field(None, description="PIN state ID (deprecated)", deprecated=True)
+    pinstate_id: int | None = Field(
+        None, description="PIN state ID (deprecated)", deprecated=True
+    )
     operator_state: OperatorState | None = Field(None, description="Operator state")
-    operator_state_id: int | None = Field(None, description="Operator state ID (deprecated)", deprecated=True)
+    operator_state_id: int | None = Field(
+        None, description="Operator state ID (deprecated)", deprecated=True
+    )
     rssi: int | None = Field(None, description="Received Signal Strength Indicator")
     operator: str | None = Field(None, description="Operator name")
     provider: str | None = Field(None, description="Provider")
     ntype: str | None = Field(None, description="Network type")
-    imsi: str | None = Field(None, description="International Mobile Subscriber Identity")
+    imsi: str | None = Field(
+        None, description="International Mobile Subscriber Identity"
+    )
     iccid: str | None = Field(None, description="Integrated Circuit Card Identifier")
     cellid: str | None = Field(None, description="Cell ID")
     rscp: str | None = Field(None, description="Received Signal Code Power")
-    ecio: str | None = Field(None, description="Energy per chip to Interference power ratio")
+    ecio: str | None = Field(
+        None, description="Energy per chip to Interference power ratio"
+    )
     rsrp: int | None = Field(None, description="Reference Signal Received Power")
     rsrq: int | None = Field(None, description="Reference Signal Received Quality")
-    sinr: int | None = Field(None, description="Signal to Interference plus Noise Ratio")
+    sinr: int | None = Field(
+        None, description="Signal to Interference plus Noise Ratio"
+    )
     pinleft: int | None = Field(None, description="PIN attempts left")
     volte: bool | None = Field(None, description="VoLTE active")
     sc_band_av: str | None = Field(None, description="Carrier aggregation status")
-    ca_signal: list[CarrierAggregationSignal] | None = Field(None, description="Carrier aggregation signal values")
+    ca_signal: list[CarrierAggregationSignal] | None = Field(
+        None, description="Carrier aggregation signal values"
+    )
     temperature: int | None = Field(None, description="Modem temperature")
     esim_profile: str | None = Field(None, description="Active eSIM profile")
-    mobile_stage: int | None = Field(None, description="Current mobile connection stage")
-    gnss_state: int | None = Field(None, description="GNSS state for devices that switch between mobile and GNSS")
+    mobile_stage: int | None = Field(
+        None, description="Current mobile connection stage"
+    )
+    gnss_state: int | None = Field(
+        None, description="GNSS state for devices that switch between mobile and GNSS"
+    )
 
     # Additional fields found in API response (not documented)
     nr5g_sa_disabled: bool | None = Field(None, description="5G SA disabled status")
-    wwan_gnss_conflict: bool | None = Field(None, description="WWAN GNSS conflict status")
+    wwan_gnss_conflict: bool | None = Field(
+        None, description="WWAN GNSS conflict status"
+    )
     modem_state_id: int | None = Field(None, description="Modem state ID")
     sim_switch_enabled: bool | None = Field(None, description="SIM switch enabled")
     serial: str | None = Field(None, description="Modem serial number")
@@ -224,13 +255,23 @@ class ModemStatusFull(TeltasyncBaseModel):
     band: str | None = Field(None, description="Current band")
     auto_5g_mode: bool | None = Field(None, description="Auto 5G mode")
 
-    # Deprecated fields (keeping for compatibility)
-    state: str | None = Field(None, description="Data connection state (deprecated)", deprecated=True)
-    state_id: int | None = Field(None, description="Data connection state ID (deprecated)", deprecated=True)
-    signal: int | None = Field(None, description="Signal strength (deprecated)", deprecated=True)
+    # Deprecated fields (keep for compatibility)
+    state: str | None = Field(
+        None, description="Data connection state (deprecated)", deprecated=True
+    )
+    state_id: int | None = Field(
+        None, description="Data connection state ID (deprecated)", deprecated=True
+    )
+    signal: int | None = Field(
+        None, description="Signal strength (deprecated)", deprecated=True
+    )
     oper: str | None = Field(None, description="Operator (deprecated)", deprecated=True)
-    netstate: str | None = Field(None, description="Network state (deprecated)", deprecated=True)
-    netstate_id: int | None = Field(None, description="Network state ID (deprecated)", deprecated=True)
+    netstate: str | None = Field(
+        None, description="Network state (deprecated)", deprecated=True
+    )
+    netstate_id: int | None = Field(
+        None, description="Network state ID (deprecated)", deprecated=True
+    )
 
     @computed_field
     def mobile_stage_description(self) -> str | None:
@@ -240,6 +281,7 @@ class ModemStatusFull(TeltasyncBaseModel):
 
 class ModemStatusOffline(TeltasyncBaseModel):
     """Limited modem status when offline."""
+
     id: str = Field(description="Offline modem id")
     name: str | None = Field(None, description="Offline modem name")
     offline: str | None = Field(None, description="Modem state")
@@ -292,7 +334,9 @@ class Modems:
         return isinstance(modem, ModemStatusFull)
 
     @staticmethod
-    def get_online_modems(modems_response: ApiResponse[list[ModemStatus]]) -> list[ModemStatusFull]:
+    def get_online_modems(
+        modems_response: ApiResponse[list[ModemStatus]],
+    ) -> list[ModemStatusFull]:
         """Get only the online modems from a modems status response.
 
         Args:
@@ -304,10 +348,16 @@ class Modems:
         if not modems_response.success or not modems_response.data:
             return []
 
-        return [modem for modem in modems_response.data if isinstance(modem, ModemStatusFull)]
+        return [
+            modem
+            for modem in modems_response.data
+            if isinstance(modem, ModemStatusFull)
+        ]
 
     @staticmethod
-    def get_offline_modems(modems_response: ApiResponse[list[ModemStatus]]) -> list[ModemStatusOffline]:
+    def get_offline_modems(
+        modems_response: ApiResponse[list[ModemStatus]],
+    ) -> list[ModemStatusOffline]:
         """Get only the offline modems from a modems status response.
 
         Args:
@@ -319,4 +369,8 @@ class Modems:
         if not modems_response.success or not modems_response.data:
             return []
 
-        return [modem for modem in modems_response.data if isinstance(modem, ModemStatusOffline)]
+        return [
+            modem
+            for modem in modems_response.data
+            if isinstance(modem, ModemStatusOffline)
+        ]
