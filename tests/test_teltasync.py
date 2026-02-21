@@ -6,8 +6,12 @@ import pytest
 from aiohttp import ClientSession
 
 from teltasync import Teltasync
-from teltasync.api_base import ApiResponse
-from teltasync.exceptions import TeltonikaAuthenticationError, TeltonikaConnectionError
+from teltasync.api_base import ApiError, ApiResponse
+from teltasync.exceptions import (
+    TeltonikaAuthenticationError,
+    TeltonikaConnectionError,
+    TeltonikaException,
+)
 from teltasync.modems import ModemStatus, ModemStatusFull
 from teltasync.system import DeviceStatusData
 from teltasync.unauthorized import UnauthorizedStatusData
@@ -220,6 +224,109 @@ async def test_reboot_device_outcome(client, response, expected: bool):
 
     result = await client.reboot_device()
     assert result is expected
+
+
+@pytest.mark.parametrize(
+    ("method_name", "action_method"),
+    [
+        ("reboot_modem", "reboot_modem"),
+        ("restart_connection", "restart_connection"),
+        ("switch_sim", "switch_sim"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_modem_action_success_returns_none(client, method_name, action_method):
+    """Test modem actions return None on success."""
+    setattr(
+        client.modems,
+        action_method,
+        AsyncMock(return_value=ApiResponse[dict](success=True)),
+    )
+
+    result = await getattr(client, method_name)("2-1")
+    assert result is None
+
+
+@pytest.mark.parametrize(
+    ("method_name", "action_method", "error_message"),
+    [
+        ("reboot_modem", "reboot_modem", "Failed to reboot modem"),
+        (
+            "restart_connection",
+            "restart_connection",
+            "Failed to restart modem connection",
+        ),
+        ("switch_sim", "switch_sim", "Failed to switch modem SIM"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_modem_action_failure_raises(
+    client, method_name, action_method, error_message
+):
+    """Test modem actions raise on unsuccessful API responses."""
+    setattr(
+        client.modems,
+        action_method,
+        AsyncMock(return_value=ApiResponse[dict](success=False)),
+    )
+
+    with pytest.raises(TeltonikaConnectionError, match=error_message):
+        await getattr(client, method_name)("2-1")
+
+
+@pytest.mark.asyncio
+async def test_modem_action_failure_without_errors_raises_connection_error(client):
+    """Test modem action failure without API errors raises connection error."""
+    client.modems.reboot_modem = AsyncMock(
+        return_value=ApiResponse[dict](
+            success=False,
+            data={"message": "Action rejected"},
+        )
+    )
+
+    with pytest.raises(TeltonikaConnectionError, match="Failed to reboot modem"):
+        await client.reboot_modem("2-1")
+
+
+@pytest.mark.asyncio
+async def test_modem_action_failure_includes_api_error_details(client):
+    """Test modem action failure uses the router API error message."""
+    client.modems.restart_connection = AsyncMock(
+        return_value=ApiResponse[dict](
+            success=False,
+            errors=[
+                ApiError(
+                    code=123,
+                    error="Operation failed",
+                    source="modem",
+                    section="general",
+                )
+            ],
+        )
+    )
+
+    with pytest.raises(
+        TeltonikaException,
+        match="Operation failed",
+    ):
+        await client.restart_connection("2-1")
+
+
+@pytest.mark.asyncio
+async def test_modem_action_auth_error_raises_authentication_error(client):
+    """Test modem actions map auth-related API errors to auth exceptions."""
+    client.modems.switch_sim = AsyncMock(
+        return_value=ApiResponse[dict](
+            success=False,
+            errors=[ApiError(code=121, error="Login failed")],
+        )
+    )
+
+    with pytest.raises(
+        TeltonikaAuthenticationError,
+        match=r"Login failed \(code 121\)",
+    ):
+        await client.switch_sim("2-1")
 
 
 @pytest.mark.parametrize(

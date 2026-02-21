@@ -62,4 +62,4 @@ class UnauthorizedClient:  # pylint: disable=too-few-public-methods
                 if isinstance(exc, ClientConnectorError)
                 else f"Connection timeout to {self.base_url}"
             )
-            raise TeltonikaConnectionError(message, exc) from exc
+            raise TeltonikaConnectionError(message) from exc

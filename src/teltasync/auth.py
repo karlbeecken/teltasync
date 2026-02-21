@@ -102,12 +102,10 @@ class Auth:  # pylint: disable=too-many-instance-attributes
         except ClientConnectorError as exc:
             raise TeltonikaConnectionError(
                 f"Cannot connect to device at {self.base_url}: {exc}",
-                exc,
             ) from exc
         except asyncio.TimeoutError as exc:
             raise TeltonikaConnectionError(
                 f"Connection timeout to device at {self.base_url}",
-                exc,
             ) from exc
         except (ClientError, OSError, ValueError) as exc:
             message = str(exc)
@@ -115,7 +113,6 @@ class Auth:  # pylint: disable=too-many-instance-attributes
             error_kind = "timeout" if timeout_hit else "error"
             raise TeltonikaConnectionError(
                 f"Connection {error_kind} to device at {self.base_url}: {message}",
-                exc,
             ) from exc
 
         response = ApiResponse[TokenData](**payload)
@@ -129,13 +126,12 @@ class Auth:  # pylint: disable=too-many-instance-attributes
             return response
 
         if status == 401:
-            raise TeltonikaInvalidCredentialsError()
+            raise TeltonikaInvalidCredentialsError("Invalid username or password")
 
         if response.errors:
             err = response.errors[0]
             raise TeltonikaAuthenticationError(
-                f"Authentication failed: {err.error}",
-                err.code,
+                f"Authentication failed: {err.error} (code {err.code})",
             )
 
         raise TeltonikaAuthenticationError("Authentication failed")

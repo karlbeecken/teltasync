@@ -3,10 +3,16 @@
 from aiohttp import ClientSession
 
 from teltasync.auth import Auth
-from teltasync.exceptions import TeltonikaAuthenticationError, TeltonikaConnectionError
+from teltasync.exceptions import (
+    TeltonikaAuthenticationError,
+    TeltonikaConnectionError,
+    TeltonikaException,
+)
 from teltasync.modems import Modems, ModemStatusFull, ModemStatusOffline
 from teltasync.system import DeviceStatusData, System
 from teltasync.unauthorized import UnauthorizedClient, UnauthorizedStatusData
+
+AUTH_ERROR_CODES = {120, 121, 122, 123}
 
 
 class Teltasync:  # pylint: disable=too-many-instance-attributes
@@ -116,6 +122,43 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
         if response.success and response.data:
             return response.data
         raise TeltonikaConnectionError("Failed to get modem status")
+
+    async def _run_modem_action(self, action, modem_id: str, action_name: str) -> None:
+        """Execute a modem action and raise on an unsuccessful API response."""
+        await self._ensure_session()
+        response = await action(modem_id)
+        if response and response.success:
+            return
+
+        message = f"Failed to {action_name}"
+        if not response or not response.errors:
+            raise TeltonikaConnectionError(message)
+
+        first_error = response.errors[0]
+        if first_error.code in AUTH_ERROR_CODES:
+            raise TeltonikaAuthenticationError(
+                f"{first_error.error} (code {first_error.code})"
+            )
+
+        raise TeltonikaException(first_error.error)
+
+    async def reboot_modem(self, modem_id: str) -> None:
+        """Reboot the specified modem."""
+        await self._run_modem_action(self.modems.reboot_modem, modem_id, "reboot modem")
+
+    async def restart_connection(self, modem_id: str) -> None:
+        """Restart the connection for the specified modem."""
+        await self._run_modem_action(
+            self.modems.restart_connection,
+            modem_id,
+            "restart modem connection",
+        )
+
+    async def switch_sim(self, modem_id: str) -> None:
+        """Switch to the next SIM of the specified modem."""
+        await self._run_modem_action(
+            self.modems.switch_sim, modem_id, "switch modem SIM"
+        )
 
     async def reboot_device(self) -> bool:
         """Trigger device reboot and return whether it was accepted."""

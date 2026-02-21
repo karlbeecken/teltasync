@@ -60,17 +60,14 @@ async def _authenticate_success(auth: Auth, mock_session, *, expires: int = 300)
 
 def test_authentication_error_creation():
     """Test TeltonikaAuthenticationError exception."""
-    error = TeltonikaAuthenticationError("Test error", 121)
+    error = TeltonikaAuthenticationError("Test error")
     assert str(error) == "Test error"
-    assert error.error_code == 121
 
 
 def test_connection_error_creation():
     """Test TeltonikaConnectionError exception."""
-    original_error = Exception("Network error")
-    error = TeltonikaConnectionError("Connection failed", original_error)
+    error = TeltonikaConnectionError("Connection failed")
     assert str(error) == "Connection failed"
-    assert error.original_error is original_error
 
 
 @pytest.mark.asyncio
@@ -99,7 +96,7 @@ async def test_authentication_with_connection_error(auth, mock_session):
         await auth.authenticate()
 
     assert "Cannot connect to device" in str(exc_info.value)
-    assert exc_info.value.original_error is connection_error
+    assert exc_info.value.__cause__ is connection_error
 
 
 @pytest.mark.asyncio
@@ -128,7 +125,7 @@ async def test_authentication_with_api_error(auth, mock_session):
         await auth.authenticate()
 
     assert "Invalid credentials" in str(exc_info.value)
-    assert exc_info.value.error_code == 121
+    assert "(code 121)" in str(exc_info.value)
 
 
 @pytest.mark.asyncio

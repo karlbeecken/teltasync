@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from pydantic import ValidationError
 
 from teltasync.api_base import ApiResponse
 from teltasync.modems import (
@@ -10,6 +11,8 @@ from teltasync.modems import (
     ModemStatus,
     ModemStatusFull,
     ModemStatusOffline,
+    decode_mobile_stage,
+    decode_modem_state,
     decode_ue_state,
 )
 from tests.helpers import load_fixture
@@ -58,6 +61,47 @@ class TestUEStateDecoding:
         cell = cell_info[0]
         assert cell.ue_state == 3
         assert cell.ue_state_description == "Connected"
+
+
+class TestMobileStageDecoding:
+    """Test mobile stage code decoding functionality."""
+
+    @pytest.mark.parametrize(
+        ("code", "expected"),
+        [
+            (20, "Waiting for SIM switch"),
+            (999, "Unknown mobile stage (999)"),
+            (None, None),
+        ],
+    )
+    def test_mobile_stage_decoding(self, code, expected):
+        """Test mobile-stage state code decoding."""
+        assert decode_mobile_stage(code) == expected
+
+
+class TestModemStateDecoding:
+    """Test modem state code decoding functionality."""
+
+    @pytest.mark.parametrize(
+        ("code", "expected"),
+        [
+            (1, "Modem is in functioning state"),
+            (999, "Unknown modem state (999)"),
+            (None, None),
+        ],
+    )
+    def test_modem_state_decoding(self, code, expected):
+        """Test modem-state code decoding."""
+        assert decode_modem_state(code) == expected
+
+    def test_modem_state_computed_field(self, modems_status_response):
+        """Test modem state computed field in modem status model."""
+        data = modems_status_response.data
+        assert data is not None
+        modem = data[0]
+        assert isinstance(modem, ModemStatusFull)
+        assert modem.modem_state_id == 1
+        assert modem.modem_state_description == "Modem is in functioning state"
 
 
 class TestModemDataParsing:
@@ -127,9 +171,18 @@ class TestModemDataParsing:
         assert primary_carrier.band == "LTE B1"
         assert primary_carrier.bandwidth == "20"
 
-        fiveg_carrier = next((ca for ca in modem.ca_signal if "5G" in ca.band), None)
+        fiveg_carrier = next(
+            (ca for ca in modem.ca_signal if ca.band and "5G" in ca.band), None
+        )
         assert fiveg_carrier is not None
         assert fiveg_carrier.band == "5G N78"
+
+    def test_enum_fields_validate_known_values(self):
+        """Test enum-typed modem fields reject unknown values."""
+        with pytest.raises(ValidationError):
+            ModemStatusFull.model_validate(
+                {"id": "2-1", "data_conn_state": "Not connected"}
+            )
 
 
 class TestModemsClient:
