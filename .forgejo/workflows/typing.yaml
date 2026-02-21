@@ -1,0 +1,26 @@
+name: Typing
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DEFAULT_PYTHON: "3.13"
+
+jobs:
+  mypy:
+    name: Mypy
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out code from GitHub
+        uses: actions/checkout@v4.1.1
+      - name: 🏗 Install uv and set the Python version ${{ env.DEFAULT_PYTHON }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+      - name: 🏗 Install dependencies
+        run: uv sync --frozen --group dev
+      - name: 🚀 Run mypy
+        run: uv run mypy src tests
