@@ -1,28 +1,41 @@
 """Tests for the base API response handling and error codes."""
 
+import pytest
+
 from teltasync.api_base import ApiError, ApiResponse
 
 
-class TestApiError:
-    """Test ApiError model functionality."""
+@pytest.mark.parametrize(
+    ("payload", "expected_source", "expected_section"),
+    [
+        (
+            {
+                "code": 121,
+                "error": "Login failed",
+                "source": "auth",
+                "section": "login",
+            },
+            "auth",
+            "login",
+        ),
+        (
+            {
+                "code": 100,
+                "error": "Generic error",
+            },
+            None,
+            None,
+        ),
+    ],
+)
+def test_api_error_creation(payload, expected_source, expected_section):
+    """Test creating ApiError models from full and minimal payloads."""
+    error = ApiError(**payload)
 
-    def test_api_error_creation(self):
-        """Test creating an ApiError."""
-        error = ApiError(code=121, error="Login failed", source="auth", section="login")
-
-        assert error.code == 121
-        assert error.error == "Login failed"
-        assert error.source == "auth"
-        assert error.section == "login"
-
-    def test_api_error_minimal(self):
-        """Test creating an ApiError with minimal fields."""
-        error = ApiError(code=100, error="Generic error")
-
-        assert error.code == 100
-        assert error.error == "Generic error"
-        assert error.source is None
-        assert error.section is None
+    assert error.code == payload["code"]
+    assert error.error == payload["error"]
+    assert error.source == expected_source
+    assert error.section == expected_section
 
 
 class TestApiResponse:

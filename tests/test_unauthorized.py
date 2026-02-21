@@ -149,23 +149,27 @@ class TestUnauthorizedClient:
         call_args = mock_session.get.call_args
         assert call_args[0][0] == "https://192.168.1.1/api/unauthorized/status"
 
+    @pytest.mark.parametrize(
+        ("side_effect", "error_match"),
+        [
+            (
+                ClientConnectorError(
+                    connection_key=Mock(ssl=False),
+                    os_error=OSError("Connection failed"),
+                ),
+                "Cannot connect to device",
+            ),
+            (asyncio.TimeoutError(), "Connection timeout"),
+        ],
+    )
     @pytest.mark.asyncio
-    async def test_get_status_connection_error(self, client, mock_session):
-        """Test status retrieval with connection error."""
-        connection_error = ClientConnectorError(
-            connection_key=Mock(ssl=False), os_error=OSError("Connection failed")
-        )
-        mock_session.get.side_effect = connection_error
+    async def test_get_status_transport_errors(
+        self, client, mock_session, side_effect, error_match
+    ):
+        """Test status retrieval transport error handling."""
+        mock_session.get.side_effect = side_effect
 
-        with pytest.raises(TeltonikaConnectionError, match="Cannot connect to device"):
-            await client.get_status()
-
-    @pytest.mark.asyncio
-    async def test_get_status_timeout_error(self, client, mock_session):
-        """Test status retrieval with timeout error."""
-        mock_session.get.side_effect = asyncio.TimeoutError()
-
-        with pytest.raises(TeltonikaConnectionError, match="Connection timeout"):
+        with pytest.raises(TeltonikaConnectionError, match=error_match):
             await client.get_status()
 
     def test_client_properties(self, client):

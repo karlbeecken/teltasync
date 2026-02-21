@@ -155,37 +155,30 @@ async def test_logout_no_active_session(auth):
     assert response.data.response == "No active session"
 
 
+@pytest.mark.parametrize(
+    ("active", "token_expected"),
+    [(True, True), (False, False)],
+)
 @pytest.mark.asyncio
-async def test_session_status_active(auth, mock_session):
-    """Test getting active session status."""
+async def test_session_status_with_existing_token(
+    auth, mock_session, active, token_expected
+):
+    """Test session status behavior when a token exists."""
     await _authenticate_success(auth, mock_session)
     mock_session.get.return_value = _mock_context_response(
-        {"success": True, "data": {"active": True}}
+        {"success": True, "data": {"active": active}}
     )
 
     response = await auth.get_session_status()
 
     assert response.success is True
     assert response.data is not None
-    assert response.data.active is True
-    assert auth.token is not None
-
-
-@pytest.mark.asyncio
-async def test_session_status_inactive_clears_token(auth, mock_session):
-    """Test that inactive session status clears stored token."""
-    await _authenticate_success(auth, mock_session)
-    mock_session.get.return_value = _mock_context_response(
-        {"success": True, "data": {"active": False}}
-    )
-
-    response = await auth.get_session_status()
-
-    assert response.success is True
-    assert response.data is not None
-    assert response.data.active is False
-    assert auth.token is None
-    assert auth.is_authenticated is False
+    assert response.data.active is active
+    if token_expected:
+        assert auth.token is not None
+    else:
+        assert auth.token is None
+        assert auth.is_authenticated is False
 
 
 @pytest.mark.asyncio

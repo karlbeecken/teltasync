@@ -132,14 +132,49 @@ async def test_get_device_info_from_fixture(
 
 
 @pytest.mark.asyncio
-async def test_get_device_info_failure(client):
-    """Test device info retrieval failure."""
-    client.unauthorized.get_status = AsyncMock(
-        return_value=ApiResponse[UnauthorizedStatusData](success=False, data=None)
-    )
+@pytest.mark.parametrize(
+    "case",
+    [
+        pytest.param(
+            (
+                "get_device_info",
+                "unauthorized",
+                "get_status",
+                ApiResponse[UnauthorizedStatusData](success=False, data=None),
+                "Failed to get device info",
+            ),
+            id="device_info",
+        ),
+        pytest.param(
+            (
+                "get_system_info",
+                "system",
+                "get_device_status",
+                ApiResponse[DeviceStatusData](success=False, data=None),
+                "Failed to get system info",
+            ),
+            id="system_info",
+        ),
+        pytest.param(
+            (
+                "get_modem_status",
+                "modems",
+                "get_status",
+                ApiResponse[list](success=False),
+                "Failed to get modem status",
+            ),
+            id="modem_status",
+        ),
+    ],
+)
+async def test_endpoint_failure_raises_connection_error(client, case):
+    """Test endpoint methods raise connection errors on unsuccessful responses."""
+    method_name, component_name, component_method, response, error_message = case
+    component = getattr(client, component_name)
+    setattr(component, component_method, AsyncMock(return_value=response))
 
-    with pytest.raises(TeltonikaConnectionError, match="Failed to get device info"):
-        await client.get_device_info()
+    with pytest.raises(TeltonikaConnectionError, match=error_message):
+        await getattr(client, method_name)()
 
 
 @pytest.mark.parametrize(
@@ -173,17 +208,6 @@ async def test_get_system_info_from_fixture(
 
 
 @pytest.mark.asyncio
-async def test_get_system_info_failure(client):
-    """Test system info retrieval failure."""
-    client.system.get_device_status = AsyncMock(
-        return_value=ApiResponse[DeviceStatusData](success=False, data=None)
-    )
-
-    with pytest.raises(TeltonikaConnectionError, match="Failed to get system info"):
-        await client.get_system_info()
-
-
-@pytest.mark.asyncio
 async def test_get_modem_status_from_fixture(
     client,
     modems_status_response,
@@ -198,15 +222,6 @@ async def test_get_modem_status_from_fixture(
     assert len(result) == 1
     assert isinstance(first_modem, ModemStatusFull)
     assert result == snapshot
-
-
-@pytest.mark.asyncio
-async def test_get_modem_status_failure(client):
-    """Test modem status retrieval failure."""
-    client.modems.get_status = AsyncMock(return_value=ApiResponse[list](success=False))
-
-    with pytest.raises(TeltonikaConnectionError, match="Failed to get modem status"):
-        await client.get_modem_status()
 
 
 @pytest.mark.parametrize(
