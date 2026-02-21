@@ -72,7 +72,9 @@ class TestUnauthorizedStatusData:
         response = ApiResponse[UnauthorizedStatusData](
             **unauthorized_status_with_banner_fixture
         )
-        banner = response.data.security_banner
+        data = response.data
+        assert isinstance(data, UnauthorizedStatusData)
+        banner = data.security_banner
 
         assert banner is not None
         assert (
