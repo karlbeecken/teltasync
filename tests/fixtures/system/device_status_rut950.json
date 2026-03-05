@@ -1,0 +1,217 @@
+{
+  "success": true,
+  "data": {
+    "mnfinfo": {
+      "macEth": "001E42AAFF02",
+      "name": "RUT950TESTXXXX",
+      "blver": "4.0.8",
+      "hwver": "2222",
+      "batch": "0135",
+      "serial": "0000009501",
+      "mac": "001E42AAFF01"
+    },
+    "static": {
+      "fw_version": "RUT9_R_00.07.06.20",
+      "kernel": "5.4.291",
+      "system": "Atheros AR9344 rev 2",
+      "device_name": "rut950-test",
+      "cpu_count": 1,
+      "hostname": "rut950-test",
+      "release": {
+        "distribution": "OpenWrt",
+        "revision": "r16279-5cc0535800",
+        "version": "21.02.0",
+        "target": "ath79/generic",
+        "description": "OpenWrt 21.02.0 r16279-5cc0535800"
+      },
+      "fw_build_date": "2025-09-19 15:37:10",
+      "model": "Teltonika RUT9XX",
+      "board_name": "teltonika,rut9xx"
+    },
+    "features": {
+      "ipv6": true
+    },
+    "board": {
+      "modems": [
+        {
+          "operator_scan": true,
+          "volte": true,
+          "dhcp_filter": true,
+          "vendor": "2c7c",
+          "simcount": 2,
+          "revision": "EC25AUFAR06A12M4G_01.001.01.001",
+          "desc": "Quectel EC25",
+          "csd": false,
+          "num": "1",
+          "type": "gobinet",
+          "boudrate": "115200",
+          "id": "1-1",
+          "primary": true,
+          "modem_func_id": 2,
+          "band_list": [
+            "GSM_850",
+            "GSM_900",
+            "GSM_1800",
+            "GSM_1900",
+            "WCDMA_850",
+            "WCDMA_900",
+            "WCDMA_1900",
+            "WCDMA_2100",
+            "LTE_B1",
+            "LTE_B2",
+            "LTE_B3",
+            "LTE_B4",
+            "LTE_B5",
+            "LTE_B7",
+            "LTE_B8",
+            "LTE_B28",
+            "LTE_B40"
+          ],
+          "stop_bits": "8",
+          "gps": "1",
+          "product": "0125",
+          "control": "2",
+          "builtin": true,
+          "ipv6": true,
+          "dynamic_mtu": true,
+          "multi_apn": true
+        }
+      ],
+      "hwinfo": {
+        "wps": false,
+        "rs232": false,
+        "nat_offloading": true,
+        "dual_sim": true,
+        "bluetooth": false,
+        "mobile": true,
+        "gigabit_port": false,
+        "soft_port_mirror": false,
+        "vcert": false,
+        "micro_usb": false,
+        "wifi": true,
+        "sd_card": false,
+        "multi_tag": false,
+        "dual_modem": false,
+        "sfp_switch": false,
+        "dsa": false,
+        "hw_nat": false,
+        "sw_rst_on_init": false,
+        "at_sim": false,
+        "port_link": false,
+        "ios": true,
+        "usb": false,
+        "console": false,
+        "dual_band_ssid": false,
+        "gps": false,
+        "ethernet": true,
+        "sfp_port": false,
+        "rs485": false,
+        "2_5_gigabit_port": false,
+        "poe": false
+      },
+      "led": {
+        "wan": {
+          "type": "netdev",
+          "name": "WAN",
+          "device": "eth1",
+          "mode": "link tx rx",
+          "sysfs": "wan_led"
+        },
+        "lan1": {
+          "speed_mask": "",
+          "type": "switch",
+          "name": "LAN1",
+          "trigger": "switch0",
+          "mode": "",
+          "port_mask": "0x10",
+          "sysfs": "eth1_led"
+        },
+        "lan2": {
+          "speed_mask": "",
+          "type": "switch",
+          "name": "LAN2",
+          "trigger": "switch0",
+          "mode": "",
+          "port_mask": "0x08",
+          "sysfs": "eth2_led"
+        },
+        "lan3": {
+          "speed_mask": "",
+          "type": "switch",
+          "name": "LAN3",
+          "trigger": "switch0",
+          "mode": "",
+          "port_mask": "0x04",
+          "sysfs": "eth3_led"
+        }
+      },
+      "model": {
+        "id": "teltonika,rut9xx",
+        "platform": "RUT9",
+        "name": "Teltonika RUT9XX"
+      },
+      "network_options": {
+        "readonly_vlans": 1,
+        "max_mtu": 1500,
+        "vlans": 15
+      },
+      "switch": {
+        "switch0": {
+          "enable": true,
+          "roles": [
+            {
+              "ports": "2 3 4 0t",
+              "role": "lan",
+              "device": "eth0.1"
+            }
+          ],
+          "ports": [
+            {
+              "device": "eth0",
+              "num": 0,
+              "want_untag": false,
+              "need_tag": false
+            },
+            {
+              "num": 2,
+              "index": 3,
+              "role": "lan"
+            },
+            {
+              "num": 3,
+              "index": 2,
+              "role": "lan"
+            },
+            {
+              "num": 4,
+              "index": 1,
+              "role": "lan"
+            }
+          ],
+          "reset": true
+        }
+      },
+      "network": {
+        "wan": {
+          "device": "eth1",
+          "proto": "dhcp"
+        },
+        "lan": {
+          "device": "eth0.1",
+          "proto": "static",
+          "default_ip": "192.168.1.1"
+        }
+      },
+      "serial": [
+        {
+          "external_devices": []
+        }
+      ],
+      "wlan": {
+        "wlan0": {
+          "bssid_limit": 8
+        }
+      }
+    }
+  }
+}

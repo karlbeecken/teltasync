@@ -49,6 +49,66 @@ class TestSystemClient:
         mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "case",
+        [
+            pytest.param(
+                {
+                    "fixture_file": "device_status_trb500.json",
+                    "expected_model": "Teltonika TRB5XX",
+                    "expected_default_ip": "192.168.2.1",
+                    "expected_bl_ver": None,
+                },
+                id="trb500",
+            ),
+            pytest.param(
+                {
+                    "fixture_file": "device_status_trb140.json",
+                    "expected_model": "Teltonika TRB14X",
+                    "expected_default_ip": "192.168.2.1",
+                    "expected_bl_ver": None,
+                },
+                id="trb140",
+            ),
+            pytest.param(
+                {
+                    "fixture_file": "device_status_rut950.json",
+                    "expected_model": "Teltonika RUT9XX",
+                    "expected_default_ip": "192.168.1.1",
+                    "expected_bl_ver": "4.0.8",
+                },
+                id="rut950",
+            ),
+        ],
+    )
+    async def test_get_device_status_parses_additional_device_variants(
+        self,
+        mock_auth,
+        snapshot,
+        case,
+    ):
+        """Test device status parsing for additional observed device payload variants."""
+        device_status_fixture = load_fixture("system", case["fixture_file"])
+        mock_response = AsyncMock()
+        mock_response.json.return_value = device_status_fixture
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
+
+        system = System(mock_auth)
+        result = await system.get_device_status()
+
+        assert result.success is True
+        data = result.data
+        assert isinstance(data, DeviceStatusData)
+        assert data == snapshot
+        assert data.static.model == case["expected_model"]
+        assert data.mnf_info.bl_ver == case["expected_bl_ver"]
+        assert data.board.network.lan is not None
+        assert data.board.network.lan.default_ip == case["expected_default_ip"]
+        assert data.board.modems is not None
+        assert data.board.modems[0].gps_out is None
+        mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
+
+    @pytest.mark.asyncio
     async def test_reboot_success(self, mock_auth):
         """Test reboot endpoint success payload parsing."""
         reboot_payload = {"success": True, "data": {}}

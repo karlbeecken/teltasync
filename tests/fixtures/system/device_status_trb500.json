@@ -1,0 +1,246 @@
+{
+  "success": true,
+  "data": {
+    "board": {
+      "modems": [
+        {
+          "operator_scan": true,
+          "volte": true,
+          "low_signal_reconnect": true,
+          "dhcp_filter": true,
+          "band_list": [
+            "WCDMA_850",
+            "WCDMA_900",
+            "WCDMA_2100",
+            "LTE_B1",
+            "LTE_B3",
+            "LTE_B5",
+            "LTE_B7",
+            "LTE_B8",
+            "LTE_B20",
+            "LTE_B28",
+            "LTE_B32",
+            "LTE_B38",
+            "LTE_B40",
+            "LTE_B41",
+            "LTE_B42",
+            "LTE_B43",
+            "NSA_5G_N1",
+            "NSA_5G_N3",
+            "NSA_5G_N5",
+            "NSA_5G_N7",
+            "NSA_5G_N8",
+            "NSA_5G_N20",
+            "NSA_5G_N28",
+            "NSA_5G_N38",
+            "NSA_5G_N40",
+            "NSA_5G_N41",
+            "NSA_5G_N77",
+            "NSA_5G_N78",
+            "5G_N1",
+            "5G_N3",
+            "5G_N5",
+            "5G_N7",
+            "5G_N8",
+            "5G_N20",
+            "5G_N28",
+            "5G_N38",
+            "5G_N40",
+            "5G_N41",
+            "5G_N77",
+            "5G_N78"
+          ],
+          "stop_bits": "8",
+          "csd": false,
+          "wwan_gnss_conflict": false,
+          "multi_apn": false,
+          "auto_5g_mode": false,
+          "dynamic_mtu": true,
+          "verizon_disable_5g_sa": false,
+          "simcount": 1,
+          "ipv6": true,
+          "framed_routing": true,
+          "gps": "1",
+          "type": "gobinet",
+          "red_cap": false,
+          "region": "EU",
+          "id": "3-1",
+          "primary": true,
+          "builtin": true,
+          "desc": "Quectel RG50X",
+          "modem_func_id": 2,
+          "cmd_port": "/dev/ttyAT0",
+          "boudrate": "115200",
+          "control": "2",
+          "revision": "RG501QEUAAR12A07M4G_04.001.04.001",
+          "vendor": "2c7c",
+          "product": "0800",
+          "num": "1"
+        }
+      ],
+      "hwinfo": {
+        "esim": false,
+        "modem_reset_quirk": false,
+        "mt7981_wifi": false,
+        "bacnet": false,
+        "access_point": false,
+        "boot_part": false,
+        "sw_offload": false,
+        "hi_storage": false,
+        "sd_card": false,
+        "downstream_kernel": false,
+        "gigabit_port": true,
+        "dot1x_client": false,
+        "port_link": true,
+        "ios": true,
+        "baseband": false,
+        "io": false,
+        "ethernet": true,
+        "hw_offload": false,
+        "rs232": false,
+        "reset_button": true,
+        "bluetooth": false,
+        "64mb_ram": false,
+        "multi_device": false,
+        "dsa": false,
+        "mbus": false,
+        "at_sim": false,
+        "hnat": false,
+        "usb": false,
+        "micro_usb": true,
+        "gateway": true,
+        "poe": false,
+        "sfp_port": false,
+        "usb_port": false,
+        "rs485": false,
+        "industrial_access_point": false,
+        "power_ios": false,
+        "wifi": false,
+        "ntrip": false,
+        "consumer_access_point": false,
+        "hw_nat": false,
+        "modbus": true,
+        "soft_port_mirror": false,
+        "stm_can": false,
+        "dual_band_ssid": false,
+        "2_5_gigabit_port": false,
+        "wps": false,
+        "nat_offloading": false,
+        "dual_modem": false,
+        "console": false,
+        "serial": false,
+        "basic_router": false,
+        "testing_kernel": false,
+        "guest_wifi": false,
+        "serial_reset_quirk": false,
+        "bt": false,
+        "tlt_failsafe_boot": false,
+        "tpm": false,
+        "ncm": false,
+        "gps": false,
+        "port_mirror": false,
+        "qrtrpipes": false,
+        "dual_sim": false,
+        "bpoffload": false,
+        "smp": false,
+        "rootfs_part": false,
+        "verified_boot": false,
+        "pppmobile": false,
+        "mobile": true,
+        "vendor_wifi": false,
+        "single_port": false,
+        "rndis": false,
+        "high_watchdog_priority": false,
+        "ledman_lite": false,
+        "xfrm-offload": false
+      },
+      "nand": {
+        "pagesize": 4096,
+        "subpagesize": 4096,
+        "blocksize": 256
+      },
+      "port_security": {
+        "fallback_vlan": false,
+        "isolation_method": "single_port",
+        "guest_vlan": false
+      },
+      "serial": [
+        {
+          "external_devices": []
+        }
+      ],
+      "network": {
+        "lan": {
+          "ports": ["eth0", "ecm0"],
+          "proto": "static",
+          "default_ip": "192.168.2.1"
+        }
+      },
+      "network_options": {
+        "max_mtu": 1500,
+        "vlans": 4094
+      },
+      "network-device": {
+        "eth0": {
+          "macaddr": "20:97:27:AA:BB:01"
+        },
+        "ecm0": {
+          "macaddr": "20:97:27:AA:BB:02"
+        }
+      },
+      "qrtr_id": 3,
+      "epinfo": {
+        "iface_id": 0,
+        "qmap_type": "qmapv5",
+        "tx_pipe": 14,
+        "rx_pipe": 2,
+        "eptype": "embedded"
+      },
+      "model": {
+        "vid": "0x1D12",
+        "platform": "TRB500",
+        "pid": "0x0003",
+        "id": "teltonika,trb5xx",
+        "name": "Teltonika TRB5XX"
+      }
+    },
+    "ports": [
+      {
+        "mac": "20:97:27:AA:BB:01",
+        "num": 0,
+        "name": "LAN",
+        "position": 1
+      }
+    ],
+    "static": {
+      "fw_version": "TRB500_R_00.07.20.3",
+      "kernel": "4.14.336",
+      "system": "ARMv7 Processor rev 5 (v7l)",
+      "device_name": "trb500-test",
+      "cpu_count": 1,
+      "hostname": "trb500-test.local",
+      "release": {
+        "distribution": "OpenWrt",
+        "revision": "r16279-5cc0535800",
+        "version": "21.02.0",
+        "target": "sdxprairie/generic",
+        "description": "OpenWrt 21.02.0 r16279-5cc0535800"
+      },
+      "fw_build_date": "2026-01-21 14:03:46",
+      "model": "Teltonika TRB5XX",
+      "board_name": "teltonika,trb5xx"
+    },
+    "features": {
+      "ipv6": true
+    },
+    "mnfinfo": {
+      "macEth": "209727AABB02",
+      "mac": "209727AABB01",
+      "name": "TRB500TESTXXXX",
+      "blver": "N/A",
+      "hwver": "0004",
+      "batch": "0008",
+      "serial": "0000005001"
+    }
+  }
+}

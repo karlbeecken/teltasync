@@ -1,0 +1,216 @@
+{
+  "success": true,
+  "data": {
+    "board": {
+      "modems": [
+        {
+          "operator_scan": true,
+          "volte": true,
+          "low_signal_reconnect": true,
+          "dhcp_filter": true,
+          "vendor": "2c7c",
+          "wwan_gnss_conflict": false,
+          "verizon_disable_5g_sa": false,
+          "wdm_port": "/dev/cdc-wdm0",
+          "csd": true,
+          "revision": "EC25EUGAR06A05M4G_BETA1108_01.005.00.000",
+          "region": "EU",
+          "modem_func_id": 0,
+          "desc": "Quectel EC25/EG25",
+          "data_port": "/dev/smd8",
+          "stop_bits": "8",
+          "dynamic_mtu": true,
+          "framed_routing": false,
+          "gps": "1",
+          "num": "1",
+          "red_cap": false,
+          "band_list": [
+            "GSM_900",
+            "GSM_1800",
+            "WCDMA_900",
+            "WCDMA_2100",
+            "LTE_B1",
+            "LTE_B3",
+            "LTE_B7",
+            "LTE_B8",
+            "LTE_B20",
+            "LTE_B28",
+            "LTE_B38",
+            "LTE_B40",
+            "LTE_B41"
+          ],
+          "id": "3-1",
+          "primary": true,
+          "builtin": true,
+          "product": "0125",
+          "ipv6": true,
+          "cmd_port": "/dev/smd9",
+          "auto_5g_mode": false,
+          "control": "2",
+          "simcount": 1,
+          "type": "gobinet",
+          "multi_apn": false,
+          "boudrate": "115200"
+        }
+      ],
+      "network": {
+        "lan": {
+          "ports": ["eth0", "rndis0"],
+          "proto": "static",
+          "default_ip": "192.168.2.1"
+        }
+      },
+      "nand": {
+        "pagesize": 2048,
+        "subpagesize": 2048,
+        "blocksize": 128
+      },
+      "port_security": {
+        "fallback_vlan": false,
+        "isolation_method": "single_port",
+        "guest_vlan": false
+      },
+      "custom_ifname": "rmnet0",
+      "hwinfo": {
+        "esim": false,
+        "modem_reset_quirk": false,
+        "mt7981_wifi": false,
+        "bacnet": false,
+        "access_point": false,
+        "boot_part": false,
+        "sw_offload": false,
+        "hi_storage": false,
+        "sd_card": false,
+        "downstream_kernel": false,
+        "gigabit_port": true,
+        "dot1x_client": false,
+        "port_link": true,
+        "ios": true,
+        "baseband": false,
+        "io": false,
+        "no-wired-wan": true,
+        "ethernet": true,
+        "hw_offload": false,
+        "rs232": false,
+        "reset_button": true,
+        "bluetooth": false,
+        "64mb_ram": false,
+        "multi_device": false,
+        "dsa": false,
+        "128mb_ram": true,
+        "mbus": false,
+        "at_sim": false,
+        "hnat": false,
+        "usb": false,
+        "micro_usb": true,
+        "gateway": true,
+        "poe": false,
+        "sfp_port": false,
+        "usb_port": false,
+        "rs485": false,
+        "industrial_access_point": false,
+        "power_ios": false,
+        "wifi": false,
+        "ntrip": false,
+        "consumer_access_point": false,
+        "hw_nat": false,
+        "modbus": true,
+        "soft_port_mirror": false,
+        "stm_can": false,
+        "dual_band_ssid": false,
+        "2_5_gigabit_port": false,
+        "wps": false,
+        "dual_modem": false,
+        "console": false,
+        "nat_offloading": false,
+        "serial": false,
+        "serial_reset_quirk": false,
+        "testing_kernel": false,
+        "guest_wifi": false,
+        "bt": false,
+        "ncm": false,
+        "dot1x-server": true,
+        "basic_router": false,
+        "tlt_failsafe_boot": false,
+        "bpoffload": false,
+        "qrtrpipes": false,
+        "gps": false,
+        "port_mirror": false,
+        "tpm": false,
+        "pppmobile": false,
+        "dual_sim": false,
+        "smp": false,
+        "rootfs_part": false,
+        "verified_boot": false,
+        "vendor_wifi": false,
+        "mobile": true,
+        "single_port": true,
+        "ledman_lite": false,
+        "rndis": false,
+        "high_watchdog_priority": false,
+        "xfrm-offload": false,
+        "user_led": false
+      },
+      "model": {
+        "vid": "0x1D12",
+        "platform": "TRB1",
+        "pid": "0x0002",
+        "id": "teltonika,trb14x",
+        "name": "Teltonika TRB14X"
+      },
+      "custom_proto": "connm",
+      "network_options": {
+        "max_mtu": 1500,
+        "vlans": 4094
+      },
+      "serial": [
+        {
+          "external_devices": []
+        }
+      ],
+      "network-device": {
+        "eth0": {
+          "macaddr": "00:1E:42:AA:CC:01"
+        }
+      }
+    },
+    "ports": [
+      {
+        "mac": "00:1E:42:AA:CC:01",
+        "num": 0,
+        "name": "LAN",
+        "position": 1
+      }
+    ],
+    "static": {
+      "fw_version": "TRB1_R_00.07.21.1",
+      "kernel": "5.4.302",
+      "system": "ARMv7 Processor rev 5 (v7l)",
+      "device_name": "TRB140",
+      "cpu_count": 1,
+      "hostname": "trb140-test.local",
+      "release": {
+        "distribution": "OpenWrt",
+        "revision": "r16279-5cc0535800",
+        "version": "21.02.0",
+        "target": "mdm9x07/generic",
+        "description": "OpenWrt 21.02.0 r16279-5cc0535800"
+      },
+      "fw_build_date": "2026-02-25 15:17:38",
+      "model": "Teltonika TRB14X",
+      "board_name": "teltonika,trb14x"
+    },
+    "features": {
+      "ipv6": true
+    },
+    "mnfinfo": {
+      "macEth": "001E42AACC02",
+      "mac": "001E42AACC01",
+      "name": "TRB140TESTXXXX",
+      "blver": "N/A",
+      "hwver": "0009",
+      "batch": "056",
+      "serial": "0000001401"
+    }
+  }
+}

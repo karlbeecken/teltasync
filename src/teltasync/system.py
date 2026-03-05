@@ -16,7 +16,7 @@ class ManufacturingInfo(TeltasyncBaseModel):
     batch: str = Field(description="Batch number")
     serial: str = Field(description="Serial number")
     mac: str = Field(description="Ethernet LAN MAC address")
-    bl_ver: str = Field(alias="blver", description="Bootloader version")
+    bl_ver: str | None = Field(alias="blver", description="Bootloader version")
 
 
 class ReleaseInfo(TeltasyncBaseModel):
@@ -57,7 +57,7 @@ class Modem(TeltasyncBaseModel):
     num: str = Field(description="Modem number")
     builtin: bool = Field(description="Modem built-in")
     sim_count: int = Field(alias="simcount", description="Modem SIM count")
-    gps_out: bool = Field(description="GPS support")
+    gps_out: bool | None = Field(None, description="GPS support")
     primary: bool = Field(description="Modem primary")
     revision: str = Field(description="Modem revision")
     modem_func_id: int = Field(description="Modem func id")
@@ -82,16 +82,16 @@ class Modem(TeltasyncBaseModel):
 class NetworkInterface(TeltasyncBaseModel):
     """Configuration values for a network interface."""
 
-    proto: str = Field(description="Protocol")
-    device: str = Field(description="Device name")
+    proto: str | None = Field(None, description="Protocol")
+    device: str | None = Field(None, description="Device name")
     default_ip: str | None = Field(None, description="Default IP address")
 
 
 class NetworkConfig(TeltasyncBaseModel):
     """WAN and LAN interface configuration."""
 
-    wan: NetworkInterface
-    lan: NetworkInterface
+    wan: NetworkInterface | None = None
+    lan: NetworkInterface | None = None
 
 
 class ModelInfo(TeltasyncBaseModel):
@@ -105,7 +105,7 @@ class ModelInfo(TeltasyncBaseModel):
 class NetworkOptions(TeltasyncBaseModel):
     """Limits and defaults used by the switch configuration."""
 
-    readonly_vlans: int
+    readonly_vlans: int | None = None
     max_mtu: int
     vlans: int
 
@@ -190,12 +190,12 @@ class HardwareInfo(TeltasyncBaseModel):
 class BoardInfo(TeltasyncBaseModel):
     """High-level board configuration including modems and switch."""
 
-    modems: list[Modem]
+    modems: list[Modem] | None
     network: NetworkConfig
     model: ModelInfo
-    usb_jack: str = Field(description="USB ports")
+    usb_jack: str | None = Field(None, description="USB ports")
     network_options: NetworkOptions
-    switch: Switch
+    switch: Switch | None = None
     hw_info: HardwareInfo = Field(alias="hwinfo")
 
 
