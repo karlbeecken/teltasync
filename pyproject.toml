@@ -1,6 +1,6 @@
 [project]
 name = "teltasync"
-version = "0.1.5"
+version = "0.2.0"
 description = "Async, typed API client for Teltonika routers, built for Home Assistant"
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
@@ -28,9 +28,9 @@ dev = [
   "pytest>=8.2,<9",
   "pytest-asyncio>=0.23,<0.24",
   "pytest-cov>=7.0.0",
-  "syrupy>=4.6.1,<5",
   "pytest-watch>=4.2,<5",
   "ruff>=0.15.2",
+  "syrupy>=4.6.1,<5",
   "watchdog>=5.0,<6",
 ]
 

@@ -1,14 +1,14 @@
 """Teltonika API library."""
 
 from teltasync.exceptions import (
-    TeltonikaException,
-    TeltonikaConnectionError,
     TeltonikaAuthenticationError,
+    TeltonikaConnectionError,
+    TeltonikaException,
     TeltonikaInvalidCredentialsError,
 )
 from teltasync.teltasync import Teltasync
 
-__version__ = "0.1.5"
+__version__ = "0.2.0"
 __all__ = [
     "Teltasync",
     "TeltonikaException",
