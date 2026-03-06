@@ -82,10 +82,18 @@ if __name__ == "__main__":
 Although it was currently only tested against a RUTX50, this library should work with most Teltonika routers that
 support the [HTTP API](https://developers.teltonika-networks.com/), including:
 
-- RUT series (RUT240, RUT241, RUT950, RUT955, etc.)
+- RUT series (RUT240, etc.)
 - RUTX series (RUTX09, RUTX11, RUTX12, etc.)
 - TRB series gateways
 - Other Teltonika devices with HTTP API support
+
+There are fixtures for a few other devices (RUTX12, RUT241, RUT950, TRB140, TRB500), but no real-world testing against them was done yet.
+
+## Known issues
+
+The `Unauthorized` models seems to not have some fields for some devices, like the RUT95x, which currently leads to validation errors. Modem and auth endpoints should still work fine.
+
+This is a known issue and will be fixed in a later release, as the change will break downstream implementations and thus requires further attention.
 
 ## Requirements
 
