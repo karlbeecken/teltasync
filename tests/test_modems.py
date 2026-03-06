@@ -24,6 +24,12 @@ def fixture_modem_status():
     return load_fixture("modems", "status.json")
 
 
+@pytest.fixture(name="modem_status_rutx12_fixture")
+def fixture_modem_status_rutx12():
+    """Load modem status test fixture for RUTX12."""
+    return load_fixture("modems", "status_rutx12.json")
+
+
 @pytest.fixture(name="modems_status_response")
 def fixture_modems_status_response(modem_status_fixture):
     """Provide a parsed modems response from fixture."""
@@ -63,7 +69,7 @@ class TestUEStateDecoding:
         assert cell.ue_state_description == "Connected"
 
 
-class TestMobileStageDecoding:
+class TestMobileStageDecoding:  # pylint: disable=too-few-public-methods
     """Test mobile stage code decoding functionality."""
 
     @pytest.mark.parametrize(
@@ -184,6 +190,22 @@ class TestModemDataParsing:
                 {"id": "2-1", "data_conn_state": "Not connected"}
             )
 
+    @pytest.mark.parametrize(
+        ("payload", "expected_sim_count", "expected_operator_scan"),
+        [
+            ({"id": "2-1", "sim_count": 2, "operators_scan": True}, 2, True),
+            ({"id": "2-1", "simcount": 1, "operator_scan": False}, 1, False),
+        ],
+    )
+    def test_aliases_for_sim_count_and_operator_scan(
+        self, payload, expected_sim_count, expected_operator_scan
+    ):
+        """Test modem status parsing accepts both legacy and compact key variants."""
+        modem = ModemStatusFull.model_validate(payload)
+
+        assert modem.sim_count == expected_sim_count
+        assert modem.operators_scan is expected_operator_scan
+
 
 class TestModemsClient:
     """Test Modems client endpoints and utility helpers."""
@@ -210,6 +232,65 @@ class TestModemsClient:
         assert data[0].conntype == modem_status_fixture["data"][0]["conntype"]
         assert data[0] == snapshot
 
+        mock_auth.request.assert_awaited_once_with("GET", "modems/status")
+
+    @pytest.mark.asyncio
+    async def test_get_status_parses_rutx12_fixture(
+        self, mock_auth, modem_status_rutx12_fixture, snapshot
+    ):
+        """
+        Test modem status parsing against the RUTX12 fixture.
+        RUTX12 is a dual-modem router, so it is a special case.
+        """
+        mock_response = AsyncMock()
+        mock_response.json.return_value = modem_status_rutx12_fixture
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
+
+        modems = Modems(mock_auth)
+        result = await modems.get_status()
+
+        assert result.success is True
+        data = result.data
+        assert data is not None
+        assert len(data) == len(modem_status_rutx12_fixture["data"])
+        assert isinstance(data[0], ModemStatusFull)
+        assert data[0].id == modem_status_rutx12_fixture["data"][0]["id"]
+        assert data[0].multi_apn is True
+        assert data[0].dynamic_mtu is True
+        assert data[1].id == modem_status_rutx12_fixture["data"][1]["id"]
+        assert data == snapshot
+
+        mock_auth.request.assert_awaited_once_with("GET", "modems/status")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("fixture_file", "expected_modems"),
+        [
+            ("status_trb140.json", 1),
+            ("status_trb500.json", 1),
+            ("status_rut950.json", 1),
+            ("status_rut241.json", 1),
+        ],
+        ids=["trb140", "trb500", "rut950", "rut241"],
+    )
+    async def test_get_status_parses_additional_device_fixtures(
+        self, mock_auth, fixture_file, expected_modems, snapshot
+    ):
+        """Test modem status parsing for additional device fixtures."""
+        modem_status_fixture = load_fixture("modems", fixture_file)
+        mock_response = AsyncMock()
+        mock_response.json.return_value = modem_status_fixture
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
+
+        modems = Modems(mock_auth)
+        result = await modems.get_status()
+
+        assert result.success is True
+        data = result.data
+        assert data is not None
+        assert len(data) == expected_modems
+        assert all(isinstance(modem, ModemStatusFull) for modem in data)
+        assert data == snapshot
         mock_auth.request.assert_awaited_once_with("GET", "modems/status")
 
     def test_utility_methods(self, modems_status_response):

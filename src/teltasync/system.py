@@ -16,7 +16,7 @@ class ManufacturingInfo(TeltasyncBaseModel):
     batch: str = Field(description="Batch number")
     serial: str = Field(description="Serial number")
     mac: str = Field(description="Ethernet LAN MAC address")
-    bl_ver: str | None = Field(alias="blver", description="Bootloader version")
+    bl_ver: str | None = Field(None, alias="blver", description="Bootloader version")
 
 
 class ReleaseInfo(TeltasyncBaseModel):
@@ -58,7 +58,9 @@ class Modem(TeltasyncBaseModel):
     builtin: bool = Field(description="Modem built-in")
     sim_count: int = Field(alias="simcount", description="Modem SIM count")
     gps_out: bool | None = Field(None, description="GPS support")
-    primary: bool = Field(description="Modem primary")
+    primary: bool | None = Field(
+        None, description="Primary modem, field only exists for the primary modem"
+    )
     revision: str = Field(description="Modem revision")
     modem_func_id: int = Field(description="Modem func id")
     multi_apn: bool = Field(description="Modem multiple APN support")

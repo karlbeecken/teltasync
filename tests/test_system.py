@@ -58,6 +58,7 @@ class TestSystemClient:
                     "expected_model": "Teltonika TRB5XX",
                     "expected_default_ip": "192.168.2.1",
                     "expected_bl_ver": None,
+                    "expected_gps_out": None,
                 },
                 id="trb500",
             ),
@@ -67,6 +68,7 @@ class TestSystemClient:
                     "expected_model": "Teltonika TRB14X",
                     "expected_default_ip": "192.168.2.1",
                     "expected_bl_ver": None,
+                    "expected_gps_out": None,
                 },
                 id="trb140",
             ),
@@ -76,8 +78,19 @@ class TestSystemClient:
                     "expected_model": "Teltonika RUT9XX",
                     "expected_default_ip": "192.168.1.1",
                     "expected_bl_ver": "4.0.8",
+                    "expected_gps_out": None,
                 },
                 id="rut950",
+            ),
+            pytest.param(
+                {
+                    "fixture_file": "device_status_rut241.json",
+                    "expected_model": "Teltonika RUT2M",
+                    "expected_default_ip": "192.168.1.1",
+                    "expected_bl_ver": "4.2.0",
+                    "expected_gps_out": None,
+                },
+                id="rut241",
             ),
         ],
     )
@@ -105,7 +118,7 @@ class TestSystemClient:
         assert data.board.network.lan is not None
         assert data.board.network.lan.default_ip == case["expected_default_ip"]
         assert data.board.modems is not None
-        assert data.board.modems[0].gps_out is None
+        assert data.board.modems[0].gps_out == case["expected_gps_out"]
         mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio

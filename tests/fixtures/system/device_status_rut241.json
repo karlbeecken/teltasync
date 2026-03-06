@@ -1,0 +1,222 @@
+{
+  "success": true,
+  "data": {
+    "board": {
+      "modems": [
+        {
+          "operator_scan": true,
+          "volte": true,
+          "low_signal_reconnect": true,
+          "dhcp_filter": false,
+          "vendor": "05c6",
+          "wwan_gnss_conflict": false,
+          "revision": "SLM750-V_4.57.20_EQ101",
+          "desc": "MeigLink SLM750",
+          "type": "gobinet",
+          "verizon_disable_5g_sa": false,
+          "simcount": 1,
+          "boudrate": "115200",
+          "framed_routing": false,
+          "csd": false,
+          "num": "1",
+          "red_cap": false,
+          "stop_bits": "8",
+          "id": "1-1",
+          "primary": true,
+          "builtin": true,
+          "band_list": [
+            "GSM_900",
+            "GSM_1800",
+            "WCDMA_850",
+            "WCDMA_900",
+            "WCDMA_2100",
+            "LTE_B1",
+            "LTE_B3",
+            "LTE_B5",
+            "LTE_B7",
+            "LTE_B8",
+            "LTE_B20",
+            "LTE_B40"
+          ],
+          "gps": "3",
+          "product": "f601",
+          "auto_5g_mode": false,
+          "control": "2",
+          "modem_func_id": 2,
+          "ipv6": true,
+          "dynamic_mtu": true,
+          "multi_apn": true
+        }
+      ],
+      "hwinfo": {
+        "esim": false,
+        "modem_reset_quirk": false,
+        "mt7981_wifi": false,
+        "bacnet": false,
+        "access_point": false,
+        "boot_part": false,
+        "sw_offload": false,
+        "hi_storage": false,
+        "sd_card": false,
+        "downstream_kernel": false,
+        "gigabit_port": false,
+        "dot1x_client": false,
+        "port_link": true,
+        "ios": true,
+        "baseband": false,
+        "io": false,
+        "ethernet": true,
+        "small_flash": true,
+        "hw_offload": false,
+        "rs232": false,
+        "reset_button": true,
+        "bluetooth": false,
+        "64mb_ram": false,
+        "multi_device": false,
+        "dsa": false,
+        "128mb_ram": true,
+        "mbus": false,
+        "at_sim": false,
+        "hnat": false,
+        "usb": false,
+        "micro_usb": false,
+        "gateway": false,
+        "poe": false,
+        "sfp_port": false,
+        "usb_port": false,
+        "rs485": false,
+        "industrial_access_point": false,
+        "power_ios": false,
+        "wifi": true,
+        "ntrip": false,
+        "consumer_access_point": false,
+        "hw_nat": false,
+        "modbus": false,
+        "dot1x-client": true,
+        "stm_can": false,
+        "dual_band_ssid": false,
+        "2_5_gigabit_port": false,
+        "wps": false,
+        "dual_modem": false,
+        "console": false,
+        "serial": false,
+        "nat_offloading": true,
+        "serial_reset_quirk": false,
+        "testing_kernel": false,
+        "guest_wifi": false,
+        "bt": false,
+        "esim-p": true,
+        "ncm": false,
+        "dot1x-server": true,
+        "bpoffload": false,
+        "tlt_failsafe_boot": false,
+        "dual_sim": false,
+        "qrtrpipes": false,
+        "gps": false,
+        "port_mirror": false,
+        "tpm": false,
+        "pppmobile": false,
+        "basic_router": false,
+        "smp": false,
+        "rootfs_part": false,
+        "verified_boot": false,
+        "ledman_lite": false,
+        "mobile": true,
+        "vendor_wifi": false,
+        "single_port": false,
+        "rndis": false,
+        "high_watchdog_priority": false,
+        "soft_port_mirror": false,
+        "xfrm-offload": true
+      },
+      "checks": [
+        {
+          "path": "/sys/bus/usb/drivers/usb/1-1",
+          "name": "usb_check",
+          "action": "reboot"
+        }
+      ],
+      "port_security": {
+        "fallback_vlan": false,
+        "isolation_method": "vlan",
+        "guest_vlan": false
+      },
+      "network_options": {
+        "readonly_vlans": 2,
+        "vlans": 16,
+        "max_mtu": 1500,
+        "vlan0": true
+      },
+      "network-device": {
+        "eth0.1": { "macaddr": "20:97:27:1b:ec:c2" },
+        "eth0.2": { "macaddr": "20:97:27:1b:ec:c3" }
+      },
+      "switch": {
+        "switch0": {
+          "enable": true,
+          "roles": [
+            { "ports": "1 6t", "role": "lan", "device": "eth0.1" },
+            { "ports": "0 6t", "role": "wan", "device": "eth0.2" }
+          ],
+          "ports": [
+            { "role": "lan", "num": 1 },
+            { "num": 0, "index": 2, "role": "wan" },
+            {
+              "device": "eth0",
+              "num": 6,
+              "want_untag": false,
+              "need_tag": false
+            }
+          ],
+          "reset": true
+        }
+      },
+      "network": {
+        "wan": { "device": "eth0.2", "proto": "dhcp" },
+        "lan": {
+          "device": "eth0.1",
+          "proto": "static",
+          "default_ip": "192.168.1.1"
+        }
+      },
+      "model": {
+        "id": "teltonika,rut2m",
+        "platform": "RUT2M",
+        "name": "Teltonika RUT2M"
+      },
+      "wlan": { "wlan0": { "bssid_limit": 4 } }
+    },
+    "ports": [
+      { "mac": "20:97:27:1B:EC:C3", "num": 0, "name": "WAN", "position": 2 },
+      { "mac": "20:97:27:1B:EC:C2", "num": 1, "name": "LAN", "position": 1 }
+    ],
+    "static": {
+      "fw_version": "RUT2M_R_00.07.20.5",
+      "kernel": "5.15.196",
+      "system": "MediaTek MT7628AN ver:1 eco:2",
+      "device_name": "RUT241",
+      "cpu_count": 1,
+      "hostname": "RUT241",
+      "release": {
+        "distribution": "OpenWrt",
+        "revision": "r16279-5cc0535800",
+        "version": "21.02.0",
+        "target": "ramips/mt76x8",
+        "description": "OpenWrt 21.02.0 r16279-5cc0535800"
+      },
+      "fw_build_date": "2026-02-06 11:48:17",
+      "model": "Teltonika RUT2M",
+      "board_name": "teltonika,rut2m"
+    },
+    "features": { "ipv6": true },
+    "mnfinfo": {
+      "macEth": "2097271BECC3",
+      "mac": "xx",
+      "name": "RUT24101XXXX",
+      "blver": "4.2.0",
+      "hwver": "0003",
+      "batch": "0021",
+      "serial": "xx"
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import Field, computed_field
+from pydantic import AliasChoices, Field, computed_field
 
 from teltasync.api_base import ApiResponse
 from teltasync.auth import Auth
@@ -296,7 +296,11 @@ class ModemStatusFull(TeltasyncBaseModel):
     )
     name: ModemName | None = Field(None, description="Modem name")
     index: int | None = Field(None, description="Modem index")
-    sim_count: int | None = Field(None, description="Number of SIM cards")
+    sim_count: int | None = Field(
+        None,
+        validation_alias=AliasChoices("sim_count", "simcount"),
+        description="Number of SIM cards",
+    )
     version: str | None = Field(None, description="Modem firmware version")
     manufacturer: str | None = Field(None, description="Modem manufacturer")
     builtin: bool | None = Field(None, description="Modem type")
@@ -309,7 +313,9 @@ class ModemStatusFull(TeltasyncBaseModel):
         None, description="Modem selects 3G band automatically"
     )
     operators_scan: bool | None = Field(
-        None, description="Modem supports operator scanning"
+        None,
+        validation_alias=AliasChoices("operators_scan", "operator_scan"),
+        description="Modem supports operator scanning",
     )
     mobile_dfota: bool | None = Field(None, description="Modem supports mobile DFOTA")
     no_ussd: bool | None = Field(None, description="Modem does not support USSD")
@@ -463,10 +469,18 @@ class ModemStatusOffline(TeltasyncBaseModel):
     disabled: ModemDisabled | None = Field(None, description="Modem disable state")
     builtin: bool | None = Field(None, description="Modem type")
     primary: bool | None = Field(None, description="Primary modem")
-    sim_count: int | None = Field(None, description="Modem SIM count")
+    sim_count: int | None = Field(
+        None,
+        validation_alias=AliasChoices("sim_count", "simcount"),
+        description="Modem SIM count",
+    )
     mode: ModemMode | None = Field(None, description="Modem mode")
     multi_apn: bool | None = Field(None, description="Multi APN support")
-    operators_scan: bool | None = Field(None, description="Operators scan support")
+    operators_scan: bool | None = Field(
+        None,
+        validation_alias=AliasChoices("operators_scan", "operator_scan"),
+        description="Operators scan support",
+    )
     dynamic_mtu: bool | None = Field(None, description="Dynamic MTU support")
     ipv6: bool | None = Field(None, description="IPv6 support")
     volte: bool | None = Field(None, description="VoLTE support")
