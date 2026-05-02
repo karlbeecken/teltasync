@@ -87,13 +87,11 @@ support the [HTTP API](https://developers.teltonika-networks.com/), including:
 - TRB series gateways
 - Other Teltonika devices with HTTP API support
 
-There are fixtures for a few other devices (RUTX12, RUT241, RUT950, TRB140, TRB500), but no real-world testing against them was done yet.
+There are fixtures for a few other devices (RUT240, RUT241, RUT950, RUTX12, TRB140, TRB500), but no real-world testing against them was done yet.
 
-## Known issues
+## Compatibility notes
 
-The `Unauthorized` models seems to not have some fields for some devices, like the RUT95x, which currently leads to validation errors. Modem and auth endpoints should still work fine.
-
-This is a known issue and will be fixed in a later release, as the change will break downstream implementations and thus requires further attention.
+Some Teltonika devices and firmware versions omit fields that are present on others. For example, older unauthenticated status responses may not include `device_model` or `device_identifier`, and some `system/device/status` responses may omit `board.modems`. These values are parsed as `None`, so downstream code should handle them as optional.
 
 ## Requirements
 
