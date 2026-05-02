@@ -1,5 +1,6 @@
 """Exceptions for the Teltonika API client."""
 
+
 class TeltonikaException(Exception):
     """Base exception for all Teltonika API client errors."""
 
