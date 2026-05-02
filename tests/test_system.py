@@ -122,6 +122,25 @@ class TestSystemClient:
         mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio
+    async def test_get_device_status_allows_missing_modems(self, mock_auth):
+        """Test device status parsing when the board doesn't provide the modems key."""
+        device_status_fixture = load_fixture("system", "device_status_trb140.json")
+        del device_status_fixture["data"]["board"]["modems"]
+
+        mock_response = AsyncMock()
+        mock_response.json.return_value = device_status_fixture
+        mock_auth.request.return_value.__aenter__.return_value = mock_response
+
+        system = System(mock_auth)
+        result = await system.get_device_status()
+
+        assert result.success is True
+        data = result.data
+        assert isinstance(data, DeviceStatusData)
+        assert data.board.modems is None
+        mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
+
+    @pytest.mark.asyncio
     async def test_reboot_success(self, mock_auth):
         """Test reboot endpoint success payload parsing."""
         reboot_payload = {"success": True, "data": {}}

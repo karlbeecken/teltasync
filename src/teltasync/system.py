@@ -192,7 +192,7 @@ class HardwareInfo(TeltasyncBaseModel):
 class BoardInfo(TeltasyncBaseModel):
     """High-level board configuration including modems and switch."""
 
-    modems: list[Modem] | None
+    modems: list[Modem] | None = None
     network: NetworkConfig
     model: ModelInfo
     usb_jack: str | None = Field(None, description="USB ports")
