@@ -2,8 +2,10 @@
 
 import asyncio
 import time
+from typing import Any
 
 from aiohttp import ClientConnectorError, ClientError, ClientSession, ClientTimeout
+from aiohttp.client import _RequestContextManager
 from pydantic import BaseModel
 
 from teltasync.api_base import ApiResponse
@@ -186,7 +188,9 @@ class Auth:  # pylint: disable=too-many-instance-attributes
             self.clear_token()
         return response
 
-    async def request(self, method: str, endpoint: str, **kwargs):
+    async def request(
+        self, method: str, endpoint: str, **kwargs: Any
+    ) -> _RequestContextManager:
         """Build an authenticated request context manager for callers."""
 
         if self.is_token_expired():

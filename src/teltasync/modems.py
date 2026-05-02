@@ -1,6 +1,6 @@
 """Bindings for the modem endpoints on Teltonika hardware."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import AliasChoices, Field, computed_field
 
@@ -563,7 +563,7 @@ class Modems:
             if isinstance(modem, ModemStatusOffline)
         ]
 
-    async def reboot_modem(self, modem_id: str) -> ApiResponse:
+    async def reboot_modem(self, modem_id: str) -> ApiResponse[dict[str, Any]]:
         """Reboot a specified modem."""
         async with await self.auth.request(
             "POST", f"modems/{modem_id}/actions/reboot"
@@ -571,7 +571,7 @@ class Modems:
             json_response = await resp.json()
             return ApiResponse(**json_response)
 
-    async def restart_connection(self, modem_id: str) -> ApiResponse:
+    async def restart_connection(self, modem_id: str) -> ApiResponse[dict[str, Any]]:
         """Restart the connection of a specified modem."""
         async with await self.auth.request(
             "POST", f"modems/{modem_id}/actions/restart_connection"
@@ -579,7 +579,7 @@ class Modems:
             json_response = await resp.json()
             return ApiResponse(**json_response)
 
-    async def switch_sim(self, modem_id: str) -> ApiResponse:
+    async def switch_sim(self, modem_id: str) -> ApiResponse[dict[str, Any]]:
         """Switch to the next SIM of the specified modem."""
         async with await self.auth.request(
             "POST", f"modems/{modem_id}/actions/switch_sim"

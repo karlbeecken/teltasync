@@ -1,6 +1,6 @@
 [project]
 name = "teltasync"
-version = "0.3.0"
+version = "0.3.1"
 description = "Async, typed API client for Teltonika routers, built for Home Assistant"
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
@@ -11,6 +11,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
 ]
 dependencies = [
   "aiohttp>=3.13.4,<4",
@@ -38,6 +39,11 @@ dev = [
 requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
 
+[tool.uv.build-backend]
+source-exclude = ["**/.DS_Store"]
+
 [tool.mypy]
 python_version = "3.13"
 mypy_path = ["src"]
+plugins = ["pydantic.mypy"]
+strict = true

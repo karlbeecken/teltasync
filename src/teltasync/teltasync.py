@@ -1,7 +1,12 @@
 """High-level facade combining Teltonika endpoint clients."""
 
+from collections.abc import Awaitable, Callable
+from types import TracebackType
+from typing import Any
+
 from aiohttp import ClientSession
 
+from teltasync.api_base import ApiResponse
 from teltasync.auth import Auth
 from teltasync.exceptions import (
     TeltonikaAuthenticationError,
@@ -79,7 +84,12 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
 
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         """Exit async context manager scope and close managed resources."""
 
         await self.close()
@@ -123,7 +133,12 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
             return response.data
         raise TeltonikaConnectionError("Failed to get modem status")
 
-    async def _run_modem_action(self, action, modem_id: str, action_name: str) -> None:
+    async def _run_modem_action(
+        self,
+        action: Callable[[str], Awaitable[ApiResponse[dict[str, Any]]]],
+        modem_id: str,
+        action_name: str,
+    ) -> None:
         """Execute a modem action and raise on an unsuccessful API response."""
         await self._ensure_session()
         response = await action(modem_id)
