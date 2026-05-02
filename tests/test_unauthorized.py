@@ -28,6 +28,12 @@ def fixture_unauthorized_status_with_banner():
     return load_fixture("unauthorized", "status-with-banner.json")
 
 
+@pytest.fixture(name="unauthorized_status_rut240_fixture")
+def fixture_unauthorized_status_rut240():
+    """Load unauthorized status test fixture for older RUT240 firmware."""
+    return load_fixture("unauthorized", "status_rut240.json")
+
+
 class TestUnauthorizedStatusData:
     """Test UnauthorizedStatusData model using fixture data."""
 
@@ -55,6 +61,22 @@ class TestUnauthorizedStatusData:
         data = response.data
         assert isinstance(data, UnauthorizedStatusData)
         assert data.security_banner is not None
+
+        assert data == snapshot
+
+    def test_unauthorized_status_rut240_from_fixture(
+        self, unauthorized_status_rut240_fixture, snapshot
+    ):
+        """Test UnauthorizedStatusData when device_model and device_identifier are missing."""
+        response = ApiResponse[UnauthorizedStatusData](
+            **unauthorized_status_rut240_fixture
+        )
+
+        assert response.success is True
+        data = response.data
+        assert isinstance(data, UnauthorizedStatusData)
+        assert data.device_model is None
+        assert data.device_identifier is None
 
         assert data == snapshot
 
@@ -117,8 +139,8 @@ class TestUnauthorizedClient:
 
     @pytest.fixture(
         name="status_payload",
-        params=["status.json", "status-with-banner.json"],
-        ids=["status", "status_with_banner"],
+        params=["status.json", "status-with-banner.json", "status_rut240.json"],
+        ids=["status", "status_with_banner", "status_rut240"],
     )
     def fixture_status_payload(self, request):
         """Return unauthorized status payload for client success tests."""

@@ -25,9 +25,9 @@ class UnauthorizedStatusData(TeltasyncBaseModel):
     lang: str
     filename: Optional[str] = None
     device_name: str
-    device_model: str
+    device_model: Optional[str] = None
     api_version: str
-    device_identifier: str
+    device_identifier: Optional[str] = None
     security_banner: Optional[SecurityBanner] = None
 
     model_config = ConfigDict(alias_generator=camel_to_snake, populate_by_name=True)
