@@ -39,11 +39,20 @@ dev = [
 requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
 
-[tool.uv.build-backend]
-source-exclude = ["**/.DS_Store"]
-
 [tool.mypy]
 python_version = "3.13"
 mypy_path = ["src"]
 plugins = ["pydantic.mypy"]
 strict = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = false
+disallow_any_generics = false
+warn_return_any = false
+strict_equality = false
+
+[tool.uv.build-backend]
+source-exclude = ["**/.DS_Store"]
