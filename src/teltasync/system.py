@@ -222,12 +222,10 @@ class System:
 
     async def get_device_status(self) -> ApiResponse[DeviceStatusData]:
         """Return manufacturing, firmware and hardware details."""
-        async with await self.auth.request("GET", "system/device/status") as resp:
-            json_response = await resp.json()
-            return ApiResponse[DeviceStatusData](**json_response)
+        json_response = await self.auth.request_json("GET", "system/device/status")
+        return ApiResponse[DeviceStatusData](**json_response)
 
     async def reboot(self) -> ApiResponse[RebootResponse]:
         """Trigger a reboot and return the raw API response."""
-        async with await self.auth.request("POST", "system/actions/reboot") as resp:
-            json_response = await resp.json()
-            return ApiResponse[RebootResponse](**json_response)
+        json_response = await self.auth.request_json("POST", "system/actions/reboot")
+        return ApiResponse[RebootResponse](**json_response)

@@ -1,23 +1,23 @@
 """High-level facade combining Teltonika endpoint clients."""
 
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from types import TracebackType
-from typing import Any
+from typing import Any, NoReturn
 
 from aiohttp import ClientSession
+from pydantic import ValidationError
 
 from teltasync.api_base import ApiResponse
 from teltasync.auth import Auth
+from teltasync.error_codes import AUTH_ERROR_CODES
 from teltasync.exceptions import (
     TeltonikaAuthenticationError,
     TeltonikaConnectionError,
-    TeltonikaException,
 )
 from teltasync.modems import Modems, ModemStatusFull, ModemStatusOffline
 from teltasync.system import DeviceStatusData, System
 from teltasync.unauthorized import UnauthorizedClient, UnauthorizedStatusData
-
-AUTH_ERROR_CODES = {120, 121, 122, 123}
 
 
 class Teltasync:  # pylint: disable=too-many-instance-attributes
@@ -94,6 +94,23 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
 
         await self.close()
 
+    @staticmethod
+    def _raise_for_response(
+        response: ApiResponse[Any] | None, message: str
+    ) -> NoReturn:
+        """Raise the appropriate exception for an unsuccessful API response."""
+
+        if not response or not response.errors:
+            raise TeltonikaConnectionError(message)
+
+        first_error = response.errors[0]
+        if first_error.code in AUTH_ERROR_CODES:
+            raise TeltonikaAuthenticationError(
+                f"{first_error.error} (code {first_error.code})"
+            )
+
+        raise TeltonikaConnectionError(first_error.error)
+
     async def get_device_info(self) -> UnauthorizedStatusData:
         """Fetch device metadata available from the unauthorized endpoint."""
 
@@ -112,7 +129,9 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
         except TeltonikaAuthenticationError:
             return False
         finally:
-            await self.logout()
+            # Logout is best effort cleanup here, failure should not change the result.
+            with suppress(TeltonikaConnectionError, ValidationError):
+                await self.logout()
         return True
 
     async def get_system_info(self) -> DeviceStatusData:
@@ -122,7 +141,7 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
         response = await self.system.get_device_status()
         if response.success and response.data:
             return response.data
-        raise TeltonikaConnectionError("Failed to get system info")
+        self._raise_for_response(response, "Failed to get system info")
 
     async def get_modem_status(self) -> list[ModemStatusFull | ModemStatusOffline]:
         """Fetch the status of all modems reported by the device."""
@@ -131,7 +150,7 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
         response = await self.modems.get_status()
         if response.success and response.data:
             return response.data
-        raise TeltonikaConnectionError("Failed to get modem status")
+        self._raise_for_response(response, "Failed to get modem status")
 
     async def _run_modem_action(
         self,
@@ -144,18 +163,7 @@ class Teltasync:  # pylint: disable=too-many-instance-attributes
         response = await action(modem_id)
         if response and response.success:
             return
-
-        message = f"Failed to {action_name}"
-        if not response or not response.errors:
-            raise TeltonikaConnectionError(message)
-
-        first_error = response.errors[0]
-        if first_error.code in AUTH_ERROR_CODES:
-            raise TeltonikaAuthenticationError(
-                f"{first_error.error} (code {first_error.code})"
-            )
-
-        raise TeltonikaException(first_error.error)
+        self._raise_for_response(response, f"Failed to {action_name}")
 
     async def reboot_modem(self, modem_id: str) -> None:
         """Reboot the specified modem."""

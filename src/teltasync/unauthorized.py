@@ -3,13 +3,12 @@
 import asyncio
 from typing import Optional
 
-from aiohttp import ClientConnectorError, ClientSession, ClientTimeout
+from aiohttp import ClientError, ClientSession, ClientTimeout
 from pydantic import ConfigDict
 
 from teltasync.api_base import ApiResponse
 from teltasync.base_model import TeltasyncBaseModel
-from teltasync.exceptions import TeltonikaConnectionError
-from teltasync.utils import camel_to_snake
+from teltasync.utils import camel_to_snake, connection_error
 
 
 class SecurityBanner(TeltasyncBaseModel):
@@ -55,11 +54,7 @@ class UnauthorizedClient:  # pylint: disable=too-few-public-methods
                 timeout=ClientTimeout(total=10.0),
             ) as resp:
                 payload = await resp.json()
-                return ApiResponse[UnauthorizedStatusData](**payload)
-        except (ClientConnectorError, asyncio.TimeoutError) as exc:
-            message = (
-                f"Cannot connect to device at {self.base_url}: {exc}"
-                if isinstance(exc, ClientConnectorError)
-                else f"Connection timeout to {self.base_url}"
-            )
-            raise TeltonikaConnectionError(message) from exc
+        except (ClientError, OSError, asyncio.TimeoutError, ValueError) as exc:
+            raise connection_error(self.base_url, exc) from exc
+
+        return ApiResponse[UnauthorizedStatusData](**payload)

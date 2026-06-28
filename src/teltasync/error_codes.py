@@ -38,6 +38,21 @@ class TeltonikaErrorCode(IntEnum):
     FILE_SIZE_TOO_BIG = 151
 
 
+# Authentication and authorization error codes (120-123).
+AUTH_ERROR_CODES = {
+    TeltonikaErrorCode.UNAUTHORIZED_ACCESS,
+    TeltonikaErrorCode.LOGIN_FAILED,
+    TeltonikaErrorCode.GENERAL_STRUCTURE_INCORRECT,
+    TeltonikaErrorCode.INVALID_JWT_TOKEN,
+}
+
+# Subset of AUTH_ERROR_CODES signalling a stale session.
+SESSION_REJECTED_CODES = {
+    TeltonikaErrorCode.UNAUTHORIZED_ACCESS,
+    TeltonikaErrorCode.INVALID_JWT_TOKEN,
+}
+
+
 ERROR_DESCRIPTIONS: Dict[int, str] = {
     100: "Response not implemented",
     101: "No action provided",

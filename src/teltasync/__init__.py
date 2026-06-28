@@ -8,7 +8,7 @@ from teltasync.exceptions import (
 )
 from teltasync.teltasync import Teltasync
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 __all__ = [
     "Teltasync",
     "TeltonikaException",

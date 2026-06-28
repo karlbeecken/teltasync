@@ -2,18 +2,21 @@
 
 import asyncio
 import time
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from typing import Any
 
-from aiohttp import ClientConnectorError, ClientError, ClientSession, ClientTimeout
-from aiohttp.client import _RequestContextManager
-from pydantic import BaseModel
+from aiohttp import ClientError, ClientSession, ClientTimeout, ContentTypeError
+from pydantic import BaseModel, ValidationError
 
 from teltasync.api_base import ApiResponse
+from teltasync.error_codes import SESSION_REJECTED_CODES
 from teltasync.exceptions import (
     TeltonikaAuthenticationError,
     TeltonikaConnectionError,
     TeltonikaInvalidCredentialsError,
 )
+from teltasync.utils import connection_error
 
 
 class TokenData(BaseModel):
@@ -89,33 +92,41 @@ class Auth:  # pylint: disable=too-many-instance-attributes
         self._token_time = None
         self._authenticated = False
 
+    async def _open_json(
+        self,
+        make_request: Callable[[], AbstractAsyncContextManager[Any]],
+    ) -> tuple[int, dict[str, Any] | None]:
+        """Open a prepared request, returning its status and JSON body."""
+
+        payload: dict[str, Any] | None
+        try:
+            async with make_request() as resp:
+                status = resp.status
+                try:
+                    payload = await resp.json()
+                except (ContentTypeError, ValueError):
+                    payload = None
+        except (ClientError, OSError, asyncio.TimeoutError, ValueError) as exc:
+            raise connection_error(self.base_url, exc) from exc
+
+        return status, payload
+
     async def authenticate(self) -> ApiResponse[TokenData]:
         """Authenticate with username/password and cache the returned token."""
 
-        try:
-            async with self.session.post(
+        status, payload = await self._open_json(
+            lambda: self.session.post(
                 f"{self.base_url}/login",
                 json={"username": self.username, "password": self.password},
                 ssl=self.check_certificate,
                 timeout=ClientTimeout(total=10.0),
-            ) as resp:
-                status = resp.status
-                payload = await resp.json()
-        except ClientConnectorError as exc:
+            )
+        )
+
+        if payload is None:
             raise TeltonikaConnectionError(
-                f"Cannot connect to device at {self.base_url}: {exc}",
-            ) from exc
-        except asyncio.TimeoutError as exc:
-            raise TeltonikaConnectionError(
-                f"Connection timeout to device at {self.base_url}",
-            ) from exc
-        except (ClientError, OSError, ValueError) as exc:
-            message = str(exc)
-            timeout_hit = "timeout" in message.lower()
-            error_kind = "timeout" if timeout_hit else "error"
-            raise TeltonikaConnectionError(
-                f"Connection {error_kind} to device at {self.base_url}: {message}",
-            ) from exc
+                f"Unexpected non-JSON response from device during login (HTTP {status})"
+            )
 
         response = ApiResponse[TokenData](**payload)
 
@@ -148,62 +159,123 @@ class Auth:  # pylint: disable=too-many-instance-attributes
             )
 
         try:
-            async with self.session.post(
-                f"{self.base_url}/logout",
-                headers={"Authorization": f"Bearer {self._token}"},
-                ssl=self.check_certificate,
-                timeout=ClientTimeout(total=10.0),
-            ) as resp:
-                payload = await resp.json()
-                return ApiResponse[LogoutResponse](**payload)
+            _, payload = await self._open_json(
+                lambda: self.session.post(
+                    f"{self.base_url}/logout",
+                    headers={"Authorization": f"Bearer {self._token}"},
+                    ssl=self.check_certificate,
+                    timeout=ClientTimeout(total=10.0),
+                )
+            )
         finally:
             self.clear_token()
+
+        if payload is None:
+            raise TeltonikaConnectionError(
+                "Unexpected non-JSON response from device during logout"
+            )
+        return ApiResponse[LogoutResponse](**payload)
+
+    @staticmethod
+    def _inactive_session() -> ApiResponse[SessionStatusData]:
+        """Return a fake response indicating no active session."""
+
+        return ApiResponse[SessionStatusData](
+            success=True,
+            data=SessionStatusData(active=False),
+        )
 
     async def get_session_status(self) -> ApiResponse[SessionStatusData]:
         """Return whether the current token still maps to an active session."""
 
         if self._token is None:
-            return ApiResponse[SessionStatusData](
-                success=True,
-                data=SessionStatusData(active=False),
-            )
+            return self._inactive_session()
 
         try:
-            async with self.session.get(
-                f"{self.base_url}/session/status",
-                headers={"Authorization": f"Bearer {self._token}"},
-                ssl=self.check_certificate,
-                timeout=ClientTimeout(total=10.0),
-            ) as resp:
-                payload = await resp.json()
-        except (ClientError, OSError, ValueError, asyncio.TimeoutError):
-            self.clear_token()
-            return ApiResponse[SessionStatusData](
-                success=True,
-                data=SessionStatusData(active=False),
+            _, payload = await self._open_json(
+                lambda: self.session.get(
+                    f"{self.base_url}/session/status",
+                    headers={"Authorization": f"Bearer {self._token}"},
+                    ssl=self.check_certificate,
+                    timeout=ClientTimeout(total=10.0),
+                )
             )
+        except TeltonikaConnectionError:
+            payload = None
 
-        response = ApiResponse[SessionStatusData](**payload)
+        if payload is None:
+            self.clear_token()
+            return self._inactive_session()
+
+        try:
+            response = ApiResponse[SessionStatusData](**payload)
+        except ValidationError:
+            self.clear_token()
+            return self._inactive_session()
+
         if response.success and response.data and not response.data.active:
             self.clear_token()
         return response
 
-    async def request(
+    async def request_json(
         self, method: str, endpoint: str, **kwargs: Any
-    ) -> _RequestContextManager:
-        """Build an authenticated request context manager for callers."""
+    ) -> dict[str, Any]:
+        """Perform an authenticated request, recovering a rejected session."""
+
+        status, payload = await self._send(method, endpoint, **kwargs)
+
+        if self._is_session_rejected(status, payload):
+            self.clear_token()
+            await self.authenticate()
+            status, payload = await self._send(method, endpoint, **kwargs)
+            if self._is_session_rejected(status, payload):
+                self.clear_token()
+                raise TeltonikaAuthenticationError(
+                    f"Device rejected the session after re-authentication (HTTP {status})"
+                )
+
+        if not isinstance(payload, dict):
+            raise TeltonikaConnectionError(
+                f"Unexpected response body from device (HTTP {status})"
+            )
+
+        return payload
+
+    async def _send(
+        self,
+        method: str,
+        endpoint: str,
+        *,
+        headers: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> tuple[int, dict[str, Any] | None]:
+        """Send a single authenticated request, returning the status and JSON body."""
 
         if self.is_token_expired():
             await self.authenticate()
 
-        headers = kwargs.pop("headers", {})
+        request_headers = dict(headers or {})
         if self._token:
-            headers["Authorization"] = f"Bearer {self._token}"
+            request_headers["Authorization"] = f"Bearer {self._token}"
 
-        return self.session.request(
-            method,
-            f"{self.base_url}/{endpoint.lstrip('/')}",
-            headers=headers,
-            ssl=self.check_certificate,
-            **kwargs,
+        return await self._open_json(
+            lambda: self.session.request(
+                method,
+                f"{self.base_url}/{endpoint.lstrip('/')}",
+                headers=request_headers,
+                ssl=self.check_certificate,
+                **kwargs,
+            )
         )
+
+    @staticmethod
+    def _is_session_rejected(status: int, payload: dict[str, Any] | None) -> bool:
+        """Return whether the session was rejected."""
+
+        if isinstance(payload, dict) and not payload.get("success"):
+            if any(
+                isinstance(error, dict) and error.get("code") in SESSION_REJECTED_CODES
+                for error in (payload.get("errors") or [])
+            ):
+                return True
+        return status == 401

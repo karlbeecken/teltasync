@@ -4,7 +4,8 @@ import asyncio
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from aiohttp import ClientConnectorError, ClientSession
+from aiohttp import ClientConnectorError, ClientSession, ContentTypeError
+from pydantic import ValidationError
 
 from teltasync.api_base import ApiResponse
 from teltasync.exceptions import TeltonikaConnectionError
@@ -192,6 +193,36 @@ class TestUnauthorizedClient:
         mock_session.get.side_effect = side_effect
 
         with pytest.raises(TeltonikaConnectionError, match=error_match):
+            await client.get_status()
+
+    @pytest.mark.asyncio
+    async def test_get_status_non_json_response(self, client, mock_session):
+        """Test a non-JSON response (e.g. an HTML error page) is a connection error."""
+        mock_response = AsyncMock()
+        mock_response.json.side_effect = ContentTypeError(Mock(), (), status=502)
+
+        mock_context = AsyncMock()
+        mock_context.__aenter__.return_value = mock_response
+        mock_context.__aexit__.return_value = None
+        mock_session.get.return_value = mock_context
+
+        with pytest.raises(TeltonikaConnectionError):
+            await client.get_status()
+
+    @pytest.mark.asyncio
+    async def test_get_status_schema_mismatch_raises_validation_error(
+        self, client, mock_session
+    ):
+        """Test a valid JSON body with the wrong shape surfaces as a ValidationError."""
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {"success": True, "data": {"lang": "en"}}
+
+        mock_context = AsyncMock()
+        mock_context.__aenter__.return_value = mock_response
+        mock_context.__aexit__.return_value = None
+        mock_session.get.return_value = mock_context
+
+        with pytest.raises(ValidationError):
             await client.get_status()
 
     def test_client_properties(self, client):

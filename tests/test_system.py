@@ -18,7 +18,7 @@ def fixture_device_status():
 def fixture_mock_auth():
     """Create a mock auth object."""
     auth = Mock()
-    auth.request = AsyncMock()
+    auth.request_json = AsyncMock()
     return auth
 
 
@@ -33,9 +33,7 @@ class TestSystemClient:
         snapshot,
     ):
         """Test device status parsing against fixture content."""
-        mock_response = AsyncMock()
-        mock_response.json.return_value = device_status_fixture
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = device_status_fixture
 
         system = System(mock_auth)
         result = await system.get_device_status()
@@ -46,7 +44,7 @@ class TestSystemClient:
 
         assert data == snapshot
         assert data.board.hw_info.field_2_5_gigabit_port is False
-        mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
+        mock_auth.request_json.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -102,9 +100,7 @@ class TestSystemClient:
     ):
         """Test device status parsing for additional observed device payload variants."""
         device_status_fixture = load_fixture("system", case["fixture_file"])
-        mock_response = AsyncMock()
-        mock_response.json.return_value = device_status_fixture
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = device_status_fixture
 
         system = System(mock_auth)
         result = await system.get_device_status()
@@ -119,7 +115,7 @@ class TestSystemClient:
         assert data.board.network.lan.default_ip == case["expected_default_ip"]
         assert data.board.modems is not None
         assert data.board.modems[0].gps_out == case["expected_gps_out"]
-        mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
+        mock_auth.request_json.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio
     async def test_get_device_status_allows_missing_modems(self, mock_auth):
@@ -127,9 +123,7 @@ class TestSystemClient:
         device_status_fixture = load_fixture("system", "device_status_trb140.json")
         del device_status_fixture["data"]["board"]["modems"]
 
-        mock_response = AsyncMock()
-        mock_response.json.return_value = device_status_fixture
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = device_status_fixture
 
         system = System(mock_auth)
         result = await system.get_device_status()
@@ -138,15 +132,13 @@ class TestSystemClient:
         data = result.data
         assert isinstance(data, DeviceStatusData)
         assert data.board.modems is None
-        mock_auth.request.assert_awaited_once_with("GET", "system/device/status")
+        mock_auth.request_json.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio
     async def test_reboot_success(self, mock_auth):
         """Test reboot endpoint success payload parsing."""
         reboot_payload = {"success": True, "data": {}}
-        mock_response = AsyncMock()
-        mock_response.json.return_value = reboot_payload
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = reboot_payload
 
         system = System(mock_auth)
         result = await system.reboot()
@@ -154,7 +146,7 @@ class TestSystemClient:
         assert result.success is True
         assert isinstance(result.data, RebootResponse)
         assert result.data.model_dump() == {}
-        mock_auth.request.assert_awaited_once_with("POST", "system/actions/reboot")
+        mock_auth.request_json.assert_awaited_once_with("POST", "system/actions/reboot")
 
     @pytest.mark.asyncio
     async def test_reboot_failure(self, mock_auth):
@@ -163,9 +155,7 @@ class TestSystemClient:
             "success": False,
             "errors": [{"code": 100, "error": "Response not implemented"}],
         }
-        mock_response = AsyncMock()
-        mock_response.json.return_value = reboot_payload
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = reboot_payload
 
         system = System(mock_auth)
         result = await system.reboot()

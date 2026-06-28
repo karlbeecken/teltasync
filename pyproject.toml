@@ -1,6 +1,6 @@
 [project]
 name = "teltasync"
-version = "0.3.1"
+version = "0.4.0"
 description = "Async, typed API client for Teltonika routers, built for Home Assistant"
 readme = "README.md"
 requires-python = ">=3.13,<4.0"

@@ -40,7 +40,7 @@ def fixture_modems_status_response(modem_status_fixture):
 def fixture_mock_auth():
     """Create a mock auth object."""
     auth = Mock()
-    auth.request = AsyncMock()
+    auth.request_json = AsyncMock()
     return auth
 
 
@@ -69,7 +69,7 @@ class TestUEStateDecoding:
         assert cell.ue_state_description == "Connected"
 
 
-class TestMobileStageDecoding:  # pylint: disable=too-few-public-methods
+class TestMobileStageDecoding:
     """Test mobile stage code decoding functionality."""
 
     @pytest.mark.parametrize(
@@ -83,6 +83,15 @@ class TestMobileStageDecoding:  # pylint: disable=too-few-public-methods
     def test_mobile_stage_decoding(self, code, expected):
         """Test mobile-stage state code decoding."""
         assert decode_mobile_stage(code) == expected
+
+    def test_mobile_stage_computed_field(self, modems_status_response):
+        """Test mobile stage computed field in modem status model."""
+        data = modems_status_response.data
+        assert data is not None
+        modem = data[0]
+        assert isinstance(modem, ModemStatusFull)
+        assert modem.mobile_stage == 19
+        assert modem.mobile_stage_description == "Mobile connection setup is complete"
 
 
 class TestModemStateDecoding:
@@ -215,9 +224,7 @@ class TestModemsClient:
         self, mock_auth, modem_status_fixture, snapshot
     ):
         """Test successful modem status retrieval using fixture data."""
-        mock_response = AsyncMock()
-        mock_response.json.return_value = modem_status_fixture
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = modem_status_fixture
 
         modems = Modems(mock_auth)
         result = await modems.get_status()
@@ -232,7 +239,7 @@ class TestModemsClient:
         assert data[0].conntype == modem_status_fixture["data"][0]["conntype"]
         assert data[0] == snapshot
 
-        mock_auth.request.assert_awaited_once_with("GET", "modems/status")
+        mock_auth.request_json.assert_awaited_once_with("GET", "modems/status")
 
     @pytest.mark.asyncio
     async def test_get_status_parses_rutx12_fixture(
@@ -242,9 +249,7 @@ class TestModemsClient:
         Test modem status parsing against the RUTX12 fixture.
         RUTX12 is a dual-modem router, so it is a special case.
         """
-        mock_response = AsyncMock()
-        mock_response.json.return_value = modem_status_rutx12_fixture
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = modem_status_rutx12_fixture
 
         modems = Modems(mock_auth)
         result = await modems.get_status()
@@ -260,7 +265,7 @@ class TestModemsClient:
         assert data[1].id == modem_status_rutx12_fixture["data"][1]["id"]
         assert data == snapshot
 
-        mock_auth.request.assert_awaited_once_with("GET", "modems/status")
+        mock_auth.request_json.assert_awaited_once_with("GET", "modems/status")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -278,9 +283,7 @@ class TestModemsClient:
     ):
         """Test modem status parsing for additional device fixtures."""
         modem_status_fixture = load_fixture("modems", fixture_file)
-        mock_response = AsyncMock()
-        mock_response.json.return_value = modem_status_fixture
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = modem_status_fixture
 
         modems = Modems(mock_auth)
         result = await modems.get_status()
@@ -291,7 +294,7 @@ class TestModemsClient:
         assert len(data) == expected_modems
         assert all(isinstance(modem, ModemStatusFull) for modem in data)
         assert data == snapshot
-        mock_auth.request.assert_awaited_once_with("GET", "modems/status")
+        mock_auth.request_json.assert_awaited_once_with("GET", "modems/status")
 
     def test_utility_methods(self, modems_status_response):
         """Test utility methods for filtering modem status types."""
@@ -325,9 +328,11 @@ class TestModemsClient:
     @pytest.mark.asyncio
     async def test_empty_response_handling(self, mock_auth):
         """Test handling of empty or failed responses."""
-        mock_response = AsyncMock()
-        mock_response.json.return_value = {"success": False, "data": None, "errors": []}
-        mock_auth.request.return_value.__aenter__.return_value = mock_response
+        mock_auth.request_json.return_value = {
+            "success": False,
+            "data": None,
+            "errors": [],
+        }
 
         modems = Modems(mock_auth)
         result = await modems.get_status()
@@ -337,3 +342,24 @@ class TestModemsClient:
 
         assert len(online_modems) == 0
         assert len(offline_modems) == 0
+
+    @pytest.mark.parametrize(
+        ("method_name", "endpoint"),
+        [
+            ("reboot_modem", "modems/2-1/actions/reboot"),
+            ("restart_connection", "modems/2-1/actions/restart_connection"),
+            ("switch_sim", "modems/2-1/actions/switch_sim"),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_modem_actions_post_to_endpoint(
+        self, mock_auth, method_name, endpoint
+    ):
+        """Test modem action methods POST to their endpoint and wrap the response."""
+        mock_auth.request_json.return_value = {"success": True, "data": {}}
+
+        modems = Modems(mock_auth)
+        result = await getattr(modems, method_name)("2-1")
+
+        assert result.success is True
+        mock_auth.request_json.assert_awaited_once_with("POST", endpoint)

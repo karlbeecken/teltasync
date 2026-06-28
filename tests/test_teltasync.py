@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiohttp import ClientSession
+from pydantic import ValidationError
 
 from teltasync import Teltasync
 from teltasync.api_base import ApiError, ApiResponse
@@ -194,6 +195,23 @@ async def test_validate_credentials(client, auth_side_effect, expected: bool):
     assert result is expected
 
 
+@pytest.mark.parametrize(
+    "logout_error",
+    [
+        TeltonikaConnectionError("boom"),
+        ValidationError.from_exception_data("LogoutResponse", []),
+    ],
+    ids=["connection_error", "validation_error"],
+)
+@pytest.mark.asyncio
+async def test_validate_credentials_ignores_logout_failure(client, logout_error):
+    """Test a logout failure during cleanup does not mask a successful validation."""
+    client.auth.authenticate = AsyncMock()
+    client.auth.logout = AsyncMock(side_effect=logout_error)
+
+    assert await client.validate_credentials() is True
+
+
 @pytest.mark.asyncio
 async def test_get_system_info_from_fixture(
     client,
@@ -311,7 +329,7 @@ async def test_modem_action_failure_includes_api_error_details(client):
             success=False,
             errors=[
                 ApiError(
-                    code=123,
+                    code=116,
                     error="Operation failed",
                     source="modem",
                     section="general",
@@ -342,6 +360,23 @@ async def test_modem_action_auth_error_raises_authentication_error(client):
         match=r"Login failed \(code 121\)",
     ):
         await client.switch_sim("2-1")
+
+
+@pytest.mark.asyncio
+async def test_getter_auth_error_raises_authentication_error(client):
+    """Test getters map auth-related API errors to auth exceptions, like modem actions."""
+    client.system.get_device_status = AsyncMock(
+        return_value=ApiResponse[DeviceStatusData](
+            success=False,
+            errors=[ApiError(code=121, error="Login failed")],
+        )
+    )
+
+    with pytest.raises(
+        TeltonikaAuthenticationError,
+        match=r"Login failed \(code 121\)",
+    ):
+        await client.get_system_info()
 
 
 @pytest.mark.parametrize(

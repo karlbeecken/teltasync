@@ -505,9 +505,8 @@ class Modems:
             List of modem statuses. Each modem can be either online (full status)
             or offline (limited status) depending on its current state.
         """
-        async with await self.auth.request("GET", "modems/status") as resp:
-            json_response = await resp.json()
-            return ApiResponse[list[ModemStatus]](**json_response)
+        json_response = await self.auth.request_json("GET", "modems/status")
+        return ApiResponse[list[ModemStatus]](**json_response)
 
     @staticmethod
     def is_online(modem: ModemStatus) -> bool:
@@ -565,24 +564,21 @@ class Modems:
 
     async def reboot_modem(self, modem_id: str) -> ApiResponse[dict[str, Any]]:
         """Reboot a specified modem."""
-        async with await self.auth.request(
+        json_response = await self.auth.request_json(
             "POST", f"modems/{modem_id}/actions/reboot"
-        ) as resp:
-            json_response = await resp.json()
-            return ApiResponse(**json_response)
+        )
+        return ApiResponse(**json_response)
 
     async def restart_connection(self, modem_id: str) -> ApiResponse[dict[str, Any]]:
         """Restart the connection of a specified modem."""
-        async with await self.auth.request(
+        json_response = await self.auth.request_json(
             "POST", f"modems/{modem_id}/actions/restart_connection"
-        ) as resp:
-            json_response = await resp.json()
-            return ApiResponse(**json_response)
+        )
+        return ApiResponse(**json_response)
 
     async def switch_sim(self, modem_id: str) -> ApiResponse[dict[str, Any]]:
         """Switch to the next SIM of the specified modem."""
-        async with await self.auth.request(
+        json_response = await self.auth.request_json(
             "POST", f"modems/{modem_id}/actions/switch_sim"
-        ) as resp:
-            json_response = await resp.json()
-            return ApiResponse(**json_response)
+        )
+        return ApiResponse(**json_response)
