@@ -254,6 +254,7 @@ class CarrierAggregationSignal(TeltasyncBaseModel):
 
     band: str | None = Field(None, description="Band number")
     bandwidth: str | None = Field(None, description="Bandwidth")
+    rssi: int | None = Field(None, description="Received Signal Strength Indicator")
     sinr: int | None = Field(
         None, description="Signal to Interference plus Noise Ratio"
     )
