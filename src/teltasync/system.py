@@ -25,7 +25,7 @@ class ReleaseInfo(TeltasyncBaseModel):
     distribution: str = Field(description="Distribution name")
     revision: str = Field(description="Revision")
     version: str = Field(description="Version of release")
-    target: str = Field(description="Target of device")
+    target: str | None = Field(description="Target of device")
     description: str = Field(description="Description of release")
 
 
