@@ -25,7 +25,7 @@ class ReleaseInfo(TeltasyncBaseModel):
     distribution: str = Field(description="Distribution name")
     revision: str = Field(description="Revision")
     version: str = Field(description="Version of release")
-    target: str | None = Field(description="Target of device")
+    target: str | None = Field(None, description="Target of device")
     description: str = Field(description="Description of release")
 
 
@@ -38,7 +38,9 @@ class StaticInfo(TeltasyncBaseModel):
     device_name: str = Field(description="Device name")
     hostname: str = Field(description="Hostname of router")
     cpu_count: int = Field(description="Number of CPU cores")
-    release: ReleaseInfo
+    release: ReleaseInfo | None = Field(
+        None, description="OpenWrt release info, removed in RutOS 7.25"
+    )
     fw_build_date: str = Field(description="Firmware build date")
     model: str = Field(description="Model name")
     board_name: str = Field(description="Board name")

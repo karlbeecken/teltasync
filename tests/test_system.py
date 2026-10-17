@@ -118,6 +118,46 @@ class TestSystemClient:
         mock_auth.request_json.assert_awaited_once_with("GET", "system/device/status")
 
     @pytest.mark.asyncio
+    async def test_get_device_status_7_24(self, mock_auth):
+        """Test parsing RutOS 7.24.x payloads, which removes static.release.target."""
+        device_status_fixture = load_fixture("system", "device_status.json")
+        release = device_status_fixture["data"]["static"]["release"]
+        del release["target"]
+        release["distribution"] = "RUTOS"
+        release["version"] = "R_00.07.24.5"
+        release["description"] = "RUTOS R_00.07.24.5"
+
+        mock_auth.request_json.return_value = device_status_fixture
+
+        system = System(mock_auth)
+        result = await system.get_device_status()
+
+        assert result.success is True
+        data = result.data
+        assert isinstance(data, DeviceStatusData)
+        assert data.static.release is not None
+        assert data.static.release.target is None
+        assert data.static.release.version == "R_00.07.24.5"
+
+    @pytest.mark.asyncio
+    async def test_get_device_status_7_25(self, mock_auth):
+        """Test parsing RutOS 7.25.x payloads, which removes static.release completely."""
+        device_status_fixture = load_fixture("system", "device_status.json")
+        del device_status_fixture["data"]["static"]["release"]
+        device_status_fixture["data"]["static"]["fw_version"] = "RUTX_R_00.07.25.3"
+
+        mock_auth.request_json.return_value = device_status_fixture
+
+        system = System(mock_auth)
+        result = await system.get_device_status()
+
+        assert result.success is True
+        data = result.data
+        assert isinstance(data, DeviceStatusData)
+        assert data.static.release is None
+        assert data.static.fw_version == "RUTX_R_00.07.25.3"
+
+    @pytest.mark.asyncio
     async def test_get_device_status_allows_missing_modems(self, mock_auth):
         """Test device status parsing when the board doesn't provide the modems key."""
         device_status_fixture = load_fixture("system", "device_status_trb140.json")
